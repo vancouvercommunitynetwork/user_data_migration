@@ -30,6 +30,7 @@
 - checkingThings will check if a replaceable string exist 
 - checkMissingRequirements will check if these 4 exists: file,passwd_file=,remoteHost and des\_directory
 - isUserExist will check if user exist
+- copyToRemote will copy the output files and createUser.sh to remote host
 
 
 ### createUser.sh
