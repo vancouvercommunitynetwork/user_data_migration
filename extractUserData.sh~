@@ -51,7 +51,6 @@ rsync -zvh "createUser.sh" "$remoteHost":"$des_directory"
 
 #comparing if one of them is empty. If parameter one is empty then it will return parameter 2 else otherway around.
 #This assumes at least one is not empty
-# Parameter one is always the replacement string
 checkingThings(){
 	if [ -z "$1" ]                          
 	then	

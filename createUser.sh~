@@ -4,7 +4,7 @@ pass_file="pass.txt"
 
 createUser(){
 $(newusers -r "$user_file")
-chpasswd -e < $2 # the e option must exist as we are feeding it encrypted password
+chpasswd -e < $2
 }
 checkingFileExitance(){
 	if [ ! -f $user_file ]
