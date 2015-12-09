@@ -7,12 +7,12 @@
 ##Info
 ### Steps:
 	- First make sure you the mod can access both files (assuming you are root):
-		- do this: chown root:root /home/user/projectfolder/extracctUserData.sh
-		- or sudo chmod 700 /home/user/projectfolder/createUser.sh
+		- do this: chown root:root /opt/user_data_migration/extractUserData.sh
+		- or sudo chmod 700 /opt/user_data_migration/createUser.sh
 	- Run ./extractUserData.sh "user_name_here"
 	- Make sure you have access to remote host, it will ask for your password while executing extractUserData.sh
-	- Goto remote host then make a cron job file in /etc/cron.d:
-		- For this case:  * * * * * root ./home/folder/createUser.sh
+	- Goto remote host then make a cron job file call user_creation in /etc/cron.d:
+		- Inside the file type this:  * * * * * root ./opt/user_data_migration/createUser.sh
 ### extractUserData.sh
 #### Infos
 - Will extract user info and their ecrypted password into 2 files (Default Names): "output.txt" and "pass.txt"
