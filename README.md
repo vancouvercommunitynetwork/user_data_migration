@@ -12,7 +12,8 @@
 	- Run ./extractUserData.sh "user_name_here"
 	- Make sure you have access to remote host, it will ask for your password while executing extractUserData.sh
 	- Goto remote host then make a cron job file in /etc/cron.d:
-		- The file should have this: '* * * * * root ./"location where createUser.sh is"' (no single nor double quotes)
+		- inside cron Job file, format should be this: * * * * * user ./path_to_application
+		- For this case:  * * * * * root ./"location where createUser.sh is" (no double quotes)
 ### extractUserData.sh
 #### Infos
 - Will extract user info and their ecrypted password into 2 files (Default Names): "output.txt" and "pass.txt"
