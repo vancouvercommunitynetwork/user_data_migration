@@ -2,7 +2,7 @@
 
 ## Usage:
 ### ./extractUserData.sh user_name_here
-### ./createUser.sh NOTE: USE ON THE OTHER SIDE
+### ./createUser.sh NOTE: EXECUTE IT ON THE REMOTE SIDE
 
 ##Info
 
