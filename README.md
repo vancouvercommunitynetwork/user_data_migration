@@ -22,7 +22,7 @@
 - Once all the checks pass it will do the extraction
 - If a replaceable string exist it will do the replacement
 - Output to a file
-- Copy to remote host
+- Copy both output files and createUser.sh (in case if createUser.sh is not there) to remote host
 
 #### Functions
 - extractDetails will extract User data then save it into a file
