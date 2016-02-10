@@ -17,8 +17,9 @@ gecos_replacement=""
 dir_replacement=""
 shell_replacement=""
 #changeable but must exist
-file="output.txt"
-passwd_file="pass.txt"
+user_info_file="output.txt"
+dir_file="dir_file.txt"
+user_passwd_file="pass.txt"
 remoteHost="ryancua@192.168.20.130"
 des_directory="/home/ryancua"
 
@@ -35,22 +36,25 @@ extractDetails ()
 	new_dir=$(checkingThings $dir_replacement "${array[array_dir]}")
 	new_shell=$(checkingThings $shell_replacement "${array[array_shell]}")
 	temp="$new_user:$new_password:$new_uid:$new_gid:$new_gecos:$new_dir:$new_shell"
-	echo $temp>> "$file"
+	echo "${array[array_dir]}" >> "$dir_file"
+	echo $temp>> "$user_info_file"
 }
 #extract encrypted password
 extractPassword(){
 	IFS=':' read -r -a array <<< "$2"
 	pass="${array[array_password]}"
-	echo "$1:$pass" >> "$passwd_file"	
+	echo "$1:$pass" >> "$user_passwd_file"	
 }
 copyToRemote(){
-rsync -zvh "$file" "$remoteHost":"$des_directory"
-rsync -zvh "$passwd_file" "$remoteHost":"$des_directory"
-rsync -zvh "createUser.sh" "$remoteHost":"$des_directory"
+rsync -za "$user_info_file" "$remoteHost":"$des_directory"
+rsync -za "$user_passwd_file" "$remoteHost":"$des_directory"
+rsync -za "createUser.sh" "$remoteHost":"$des_directory"
+rsync -za "${array[array_dir]}" "$remoteHost":"/home/"
 }
 
 #comparing if one of them is empty. If parameter one is empty then it will return parameter 2 else otherway around.
 #This assumes at least one is not empty
+# Parameter one is always the replacement string
 checkingThings(){
 	if [ -z "$1" ]                          
 	then	
@@ -61,12 +65,12 @@ checkingThings(){
 }
 
 checkMissingRequirements(){
-	if [ -z "$file" ]
+	if [ -z "$user_info_file" ]
 	then
 		echo 'output file ($file) is empty. Exiting program'
 		exit
 	fi
-	if [ -z "$passwd_file" ]
+	if [ -z "$user_passwd_file" ]
 	then
 		echo 'output password file ($passwd_file) is empty. Exiting program'
 		exit
@@ -115,7 +119,7 @@ else
 	then 
 		extractPassword "$1" "$user_password_result"
 		extractDetails "$1"
-		copyToRemote
+
 	else
 		echo "user does not exist"
 		exit

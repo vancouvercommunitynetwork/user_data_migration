@@ -1,11 +1,17 @@
 # User data extraction and migration
 
 ## Usage:
-### ./extractUserData.sh user_name_here
-### ./createUser.sh NOTE: USE ON THE OTHER SIDE
-
+### create a text file with users that you want to migrate (one user per line)
+### save it as list_of_users.txt - if name differently, change the text file of this line:
+### list_of_users_file="list_of_users.txt"
+### then type this:
+### ./muti_user
 ##Info
 
+### muti_user.sh
+#### Infos
+- Will recursively call extractUserData for each user that provided in the file in list_of_users_file variable
+- It will execute rsyncing_stuff.sh afterwards (will explain later)
 ### extractUserData.sh
 #### Infos
 - Will extract user info and their ecrypted password into 2 files (Default Names): "output.txt" and "pass.txt"
@@ -26,7 +32,7 @@
 #### Functions
 - extractDetails will extract User data then save it into a file
 - extractPassword will extract the User's password then save it into a file
-- checkingThings will check if a replaceable string exist 
+- checkingThings will check if a replaceable string exist
 - checkMissingRequirements will check if these 4 exists: file,passwd_file=,remoteHost and des\_directory
 - isUserExist will check if user exist
 
@@ -42,5 +48,8 @@
 - checkingFileExitance will check if the user_file and password\_file exist (both change able in the script)
 - createUser will create users in a batch then change the password in a batch as well
 - deleteFiles will delete both user_file and password\_file within the directory (if it exist then it's deletable)
-
-
+### rsyncing_stuff.sh
+#### Info
+- Will copy the user info file, user password file and user creation script to another server
+- then it will execute the creation script remotely
+- Afterwards it will copy the home folder of each user to the new server
