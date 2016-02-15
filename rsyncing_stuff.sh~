@@ -1,7 +1,7 @@
 #changeable but must exist
 user_info_file="output.txt"
 user_passwd_file="pass.txt"
-remoteHost="root@192.168.20.116"
+remoteHost="192.168.20.116"
 des_directory="/home/vcn"
 directory_files="users_dir_file.txt"
 des_file="$des_directory/createUser.sh"

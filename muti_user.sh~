@@ -22,9 +22,9 @@ then
 	exit
 	
 else	
-	echo -n "" > "$dir_file"
-	echo -n "" > "$user_info_file"
-	echo -n "" > "$user_passwd_file"
+	echo "" > "$dir_file"
+	echo "" > "$user_info_file"
+	echo "" > "$user_passwd_file"
 	launchingProgram
 	./$remote_file
 
