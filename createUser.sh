@@ -4,10 +4,11 @@ user_file="$dest_directory/output.txt"
 pass_file="$dest_directory/pass.txt"
 
 createUser(){
-$(newusers -r "$user_file")
-chpasswd -e < $2 # the e option must exist as we are feeding it encrypted password
+    $(newusers -r "$user_file")
+    chpasswd -e < $2
 }
-checkingFileExitance(){
+
+checkIfFileExists(){
 	if [ ! -f $user_file ]
 	then
 		echo "User File not found!"
@@ -19,7 +20,6 @@ checkingFileExitance(){
 		exit
 	fi
 }
-
 
 deleteFile(){
 	rm "$user_file"
@@ -37,7 +37,7 @@ else
 		echo "please enter a user file"
 		exit
 	else
-		checkingFileExitance		
+		checkIfFileExists		
 		createUser $user_file $pass_file
 		deleteFile $user_file $pass_file
 	fi

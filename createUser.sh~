@@ -2,9 +2,6 @@
 dest_directory="/home/vcn"
 user_file="$dest_directory/output.txt"
 pass_file="$dest_directory/pass.txt"
-user_info_file="output.txt"
-dir_file="users_dir_file.txt"
-user_passwd_file="pass.txt"
 
 createUser(){
 $(newusers -r "$user_file")
