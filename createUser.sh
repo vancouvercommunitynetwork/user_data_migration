@@ -1,10 +1,9 @@
-#creating user and changing its password
 dest_directory="/home/vcn"
 user_file="$dest_directory/output.txt"
 pass_file="$dest_directory/pass.txt"
 
 createUser(){
-    $(newusers -r "$user_file")
+    $(newusers -r $user_file)
     chpasswd -e < $2
 }
 
@@ -22,23 +21,11 @@ checkIfFileExists(){
 }
 
 deleteFile(){
-	rm "$user_file"
-	rm "$pass_file"
+	rm $user_file
+	rm $pass_file
 }
 
-if [ -z "$user_file" ] 
-                   # Is file exist
-then
-	echo "please enter a user file"
-	exit
-else
-	if [ -z "$pass_file" ]			# Have you input a file?
-	then
-		echo "please enter a user file"
-		exit
-	else
-		checkIfFileExists		
-		createUser $user_file $pass_file
-		deleteFile $user_file $pass_file
-	fi
-fi
+checkIfFileExists		
+createUser $user_file $pass_file
+deleteFile $user_file $pass_file
+
