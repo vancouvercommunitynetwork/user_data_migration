@@ -1,71 +1,54 @@
 #!/bin/bash
-#don't change these
-array_user=0
-array_password=1
-array_uid=2
-array_gid=3
-array_gecos=4
-array_dir=5
-array_shell=6
 
-#These are changeable, can be empty string
-user_replacement="$1" #will be whatever you replace user as. Default value is paramater one
-password_replacement=""
-uid_replacement=""
-gid_replacement=""
-gecos_replacement=""
-dir_replacement=""
-shell_replacement=""
+# Indices of data members in an /etc/passwd entry.
+index_user=0
+index_password=1
+index_uid=2
+index_gid=3
+index_gecos=4
+index_dir=5
+index_shell=6
+
 #changeable but must exist
-user_info_file="output.txt"
-dir_file="users_dir_file.txt"
+user_data_output="user_data_output.txt"
+#dir_file="users_dir_file.txt"
 user_passwd_file="pass.txt"
 remoteHost="ryancua@192.168.20.130"
 des_directory="/home/ryancua"
 
-#Extracting details and save it into a output file
-extractDetails ()
+# Extract the user entries from local /etc/passwd file and save them to the output file.
+extractUserEntries()
 {
 	user_result=$(grep "^$1:" /etc/passwd)
 	IFS=':' read -r -a array <<< "$user_result"
-	new_user=$(checkingThings $user_replacement "${array[array_user]}")  # If custom input exist (ie user_replacement), it will return that. Else return default one
-	new_password=$(checkingThings $password_replacement "${array[array_password]}")
-	new_uid=$(checkingThings $uid_replacement "${array[array_uid]}")
-	new_gid=$(checkingThings $gid_replacement "${array[array_gid]}")
-	new_gecos=$(checkingThings $gecos_replacement "${array[array_gecos]}")
-	new_dir=$(checkingThings $dir_replacement "${array[array_dir]}")
-	new_shell=$(checkingThings $shell_replacement "${array[array_shell]}")
-	temp="$new_user:$new_password:$new_uid:$new_gid:$new_gecos:$new_dir:$new_shell"
-	echo "${array[array_dir]}" >> "$dir_file"
-	echo $temp>> "$user_info_file"
+	new_user=$(checkingThings $user_replacement "${array[index_user]}")  # If custom input exist (ie user_replacement), it will return that. Else return default one
+	new_password=$(checkingThings $password_replacement "${array[index_password]}")
+	new_uid=$(checkingThings $uid_replacement "${array[index_uid]}")
+	new_gid=$(checkingThings $gid_replacement "${array[index_gid]}")
+	new_gecos=$(checkingThings $gecos_replacement "${array[index_gecos]}")
+	new_dir=$(checkingThings $dir_replacement "${array[index_dir]}")
+	new_shell=$(checkingThings $shell_replacement "${array[index_shell]}")
+    # Construct a new user entry based on extracted data and substituted shell of nologin.
+	user_entry="$new_user:$new_password:$new_uid:$new_gid:$new_gecos:$new_dir:nologin"
+#	echo "${array[index_dir]}" >> "$dir_file"
+	echo $user_entry >> "$user_data_output"
 }
 #extract encrypted password
 extractPassword(){
 	IFS=':' read -r -a array <<< "$2"
-	pass="${array[array_password]}"
+	pass="${array[index_password]}"
 	echo "$1:$pass" >> "$user_passwd_file"	
 }
-copyToRemote(){
-rsync -za "$user_info_file" "$remoteHost":"$des_directory"
-rsync -za "$user_passwd_file" "$remoteHost":"$des_directory"
-rsync -za "createUser.sh" "$remoteHost":"$des_directory"
-rsync -za "${array[array_dir]}" "$remoteHost":"/home/"
-}
 
-#comparing if one of them is empty. If parameter one is empty then it will return parameter 2 else otherway around.
-#This assumes at least one is not empty
-# Parameter one is always the replacement string
-checkingThings(){
-	if [ -z "$1" ]                          
-	then	
-		echo $2
-	else
-		echo $1
-	fi
+copyToRemote(){
+    rsync -za "$user_data_output" "$remoteHost":"$des_directory"
+    rsync -za "$user_passwd_file" "$remoteHost":"$des_directory"
+    rsync -za "createUser.sh" "$remoteHost":"$des_directory"
+    rsync -za "${array[index_dir]}" "$remoteHost":"/home/"
 }
 
 checkMissingRequirements(){
-	if [ -z "$user_info_file" ]
+	if [ -z "$user_data_output" ]
 	then
 		echo 'output file ($file) is empty. Exiting program'
 		exit
@@ -118,7 +101,7 @@ else
 	if isUserExist "$user_password_result" 
 	then 
 		extractPassword "$1" "$user_password_result"
-		extractDetails "$1"
+		extractUserEntries "$1"
 
 	else
 		echo "user does not exist"
