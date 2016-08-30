@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# An alternate version of extractUserData.sh that calls extractUserData2.sh
+# An alternate version of extractUserData.sh that calls extractPasswdData.sh and extractShadowData.sh.
 
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <input file> <output file>"
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 <input file> <user data output file> <user password output file"
     echo
     echo "Explanation"
-    echo "  An input file is required. It must contain a list of newline-separated usernames."
-    echo "  An output file is required. It will be overwritten with user entries derived from /etc/passwd."
+    echo "  An username input file is required. It must contain a list of newline-separated usernames."
+    echo "  An user data output file is required. It will be overwritten with user entries derived from /etc/passwd."
+    echo "  An user password output file is require. It will be overwritten with encrypted passwords from /etc/shadow."
     exit 1
 fi
 
-# Delete the output file to prevent appending of duplicate entries.
-#rm $2
+echo "Extracting user data for users specified by input file: $1"
+./extractPasswdData.sh < $1 > $2
 
-echo "Processing user list: $1"
-
-./extractUserData2.sh < $1 > $2
+echo "Extracting passwords for users specified by input file: $1"
+./extractShadowData.sh < $1 > $3

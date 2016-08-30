@@ -1,6 +1,3 @@
-anyone
-news
-man
-someone
-games
-map
+test1
+vcn
+test2
