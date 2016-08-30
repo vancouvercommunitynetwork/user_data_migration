@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# An alternate version of extractUserData.sh
+# An alternate version of extractUserData.sh that calls extractUserData2.sh
 
 if [ $# -ne 2 ]; then
     echo "Usage: $0 <input file> <output file>"
     echo
     echo "Explanation"
     echo "  An input file is required. It must contain a list of newline-separated usernames."
-    echo "  An output file is required. It will be overwritten with found user entries."
+    echo "  An output file is required. It will be overwritten with user entries derived from /etc/passwd."
     exit 1
 fi
 

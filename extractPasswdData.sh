@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# A pipeable version of extractUserData.sh
+# A pipeable script for extracting a subset of /etc/passwd and reformatting it for user migration purposes.
 
 # Indices of data members in an /etc/passwd entry.
 index_user=0

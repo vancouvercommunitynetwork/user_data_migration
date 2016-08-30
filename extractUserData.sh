@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# THIS SCRIPT IS NOW DEPRECATED. Use extractUsers.sh instead
+
 # Indices of data members in an /etc/passwd entry.
 index_user=0
 index_password=1
