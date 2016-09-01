@@ -8,7 +8,7 @@ if [ $# -ne 3 ]; then
     echo "Explanation"
     echo "  An username input file is required. It must contain a list of newline-separated usernames."
     echo "  An user data output file is required. It will be overwritten with user entries derived from /etc/passwd."
-    echo "  An user password output file is require. It will be overwritten with encrypted passwords from /etc/shadow."
+    echo "  An user password output file is require. It will be overwritten with encrypted password entries from /etc/shadow."
     exit 1
 fi
 

@@ -39,7 +39,7 @@ while read user_name; do
         # Convert the array to a set of fields.
         field_user=${array_of_field_data[index_user]}
         field_password=${array_of_field_data[index_password]}
-        field_uid=""  # Migrated users will have new IDs generated for them at the other end.
+        field_uid=${array_of_field_data[index_uid]}
         field_gid=${array_of_field_data[index_gid]}
         field_gecos=${array_of_field_data[index_gecos]}
         field_dir="/home"  # All migrated users share a home dir.
