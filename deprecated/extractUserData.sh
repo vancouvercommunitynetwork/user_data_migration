@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# THIS SCRIPT IS NOW DEPRECATED. Use extractUsers.sh instead
+# THIS SCRIPT IS NOW DEPRECATED. Use exportUsers.sh instead
 
 # Indices of data members in an /etc/passwd entry.
 index_user=0

@@ -42,8 +42,8 @@ while read user_name; do
         field_uid=${array_of_field_data[index_uid]}
         field_gid=${array_of_field_data[index_gid]}
         field_gecos=${array_of_field_data[index_gecos]}
-        field_dir="/home"  # All migrated users share a home dir.
-        field_shell="nologin"  # Disable shell access.
+        field_dir="/home"  # All migrated users share the home dir.
+        field_shell="/sbin/nologin"  # Disable shell access.
 
         # Output reconstructed user entry.
         user_entry="$field_user:$field_password:$field_uid:$field_gid:$field_gecos:$field_dir:$field_shell"
