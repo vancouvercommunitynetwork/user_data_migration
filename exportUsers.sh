@@ -4,7 +4,9 @@
 #   Check that the destination is reachable.
 #   Check that file copying succeeds before attempting newusers and chpasswd (maybe the files couldn't be created for permission reasons or maybe the transfer failed).
 #   Check that an ssh-key has already been installed to the remote machine and that ssh login is working. Consider making your script automate the ssh-keygen call if needed (maybe that should be a separate "install" script. Any automation of ssh-keygen should check that the specified remote user has superuser privileges.
-# Figure out how to embed file_user_data and file_pass_data variables into the remotely executed script.
+#   Figure out how to embed file_user_data and file_pass_data variables into the remotely executed script.
+#   Test the code for deleting the local temp files.
+#   Write the code for deleting the remote temp files and the remote copy of importUsers.sh.
 
 
 # Files that will be passed to the remote machine.
@@ -44,7 +46,6 @@ fi
 
 
 # With all checks completed, proceed to actually doing stuff...
-
 echo "Extracting local user data."
 ./extractPasswdData.sh < $1 > $file_user_data
 ./extractShadowData.sh < $1 > $file_pass_data

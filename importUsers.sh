@@ -1,10 +1,6 @@
 #!/bin/bash
 
-# This is a temporary script for working out how to use useradd in a loop (since newusers isn't working properly). It is intended that this code will be later integrated into exportUsers.sh to be executed remotely. At that time this script should probably be deleted from the project.
-
-# NOTES:
-#   Double-check that useradd cannot create a duplicate entry if an attempt is made to add a user whose  is already present
-
+# This script is meant to be run remotely on the destination machine to import the user data that has been copied over. It is not intended to be run manually, but it can be.
 
 # Check that command arguments are correct.
 if [ $# -ne 2 ]; then
