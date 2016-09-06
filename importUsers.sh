@@ -3,8 +3,6 @@
 # This is a temporary script for working out how to use useradd in a loop (since newusers isn't working properly). It is intended that this code will be later integrated into exportUsers.sh to be executed remotely. At that time this script should probably be deleted from the project.
 
 # NOTES:
-#   Is there a way to call useradd with a standard entry such as "test8:x:1100:1000:fake user:/home:/sbin/nologin"? Rather than using a mess of command line options with useradd?
-#   You'll want to use the -M option to explicitly insure that no home directory is created (in case /etc/login.defs has changed the default behaviour).
 #   Double-check that useradd cannot create a duplicate entry if an attempt is made to add a user whose  is already present
 
 
@@ -19,17 +17,14 @@ index_dir=5
 index_shell=6
 
 if [ $# -ne 1 ]; then
-        echo "A script for importing a list of users from a fiel in the same format as an /etc/passwd file."
+        echo "A script for importing a list of users from a field in the same format as an /etc/passwd file."
         echo "Usage: $0 <text file with user entries>"
 fi
 
 # Read in the new users and create their accounts.
-while read user_name; do
-    # Search for username in /etc/passwd
-    user_result=$(grep "^$user_name:" $1) # Entry line must start with username followed by a colon in order to match.
-
+while read line; do
     # Split the user's entry by colons into an array.
-    IFS=':' read -r -a array_of_field_data <<< "$user_result"
+    IFS=':' read -r -a array_of_field_data <<< "$line"
 
     # Convert the array to a set of fields.
     field_user=${array_of_field_data[index_user]}
@@ -41,8 +36,8 @@ while read user_name; do
     field_shell=${array_of_field_data[index_shell]}
 
     # Create the new user (do not create a home directory).
-    useradd -u $field_uid -g $field_gid -c "$field_gecos" -M -s $index_shell $field_user
-done
+    useradd -u $field_uid -g $field_gid -c "$field_gecos" -M -s $field_shell $field_user
+done <$1
 
 # Assign passwords to the new users.
 #chpasswd -e < shadow_output.txt
