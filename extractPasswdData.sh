@@ -1,6 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # A pipeable script for extracting a subset of /etc/passwd and reformatting it for user migration purposes.
+ 
+set -e  # Exit script on command failures.
+set -u  # Exit script on attempted use of undeclared variables.
 
 # Indices of data members in an /etc/passwd entry.
 index_user=0
@@ -11,20 +14,13 @@ index_gecos=4
 index_dir=5
 index_shell=6
 
-case "$1" in
-    "--help")
-        echo "A pipeable script for extracting user entries from /etc/passwd."
-        echo "Usage: $0 [OPTIONS]"
-        echo
-        echo "Options:"
-        echo "  --help   display this message"
-        echo "  -r       report missing users to stderr"
-        exit 0
-    ;;
-    "-r")
-        reportMissingUsers="true"
-    ;;
-esac
+if [ $# -ne 0 ]; then
+    echo "A script for extracting user entries from /etc/passwd."
+    echo "Usage: $0 [OPTIONS]"
+    echo
+    echo "Options:"
+    exit 0
+fi
 
 # Read usernames to convert to /etc/passwd entries.
 while read user_name; do
@@ -50,8 +46,8 @@ while read user_name; do
         echo $user_entry
     else
         if [ "$reportMissingUsers" == true ]; then
-            # Report missing users to file descriptor #2 (stderr).
-            >&2 echo "  No record was found for user: $user_name"
+            # Report missing users to stderr (&2).
+            >&2 echo "WARNING: No record was found for user: $user_name"
         fi
     fi
 done

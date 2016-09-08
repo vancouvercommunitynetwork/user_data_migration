@@ -1,11 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script is meant to be run remotely on the destination machine to import the user data that has been copied over. It is not intended to be run manually, but it can be.
+ 
+set -e  # Exit script on command failures.
+set -u  # Exit script on attempted use of undeclared variables.
 
 # Check that command arguments are correct.
 if [ $# -ne 2 ]; then
-        echo "A script for importing a list of users from a field in the same format as an /etc/passwd file."
-        echo "Usage: $0 <passwd file> <shadow file>"
+    echo "A script for importing a list of users from a field in the same format as an /etc/passwd file."
+    echo "Usage: $0 <passwd file> <shadow file>"
 fi
 
 # Indices of data members in an /etc/passwd entry.

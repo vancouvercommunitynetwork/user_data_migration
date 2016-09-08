@@ -1,6 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # A pipeable script for extracting a subset of /etc/shadow for user migration purposes.
+ 
+set -e  # Exit script on command failures.
+set -u  # Exit script on attempted use of undeclared variables.
 
 # Indices of data members in an /etc/shadow entry.
 index_user=0  # The login name
@@ -13,20 +16,10 @@ index_inactive=6  # The number of days after password expires that account is di
 index_expire=7  # days since Jan 1, 1970 that account is disabled
 
 
-case "$1" in
-    "--help")
-        echo "A pipeable script for extracting encrypted passwords from /etc/shadow."
-        echo "Usage: $0 [OPTIONS]"
-        echo
-        echo "Options:"
-        echo "  --help   display this message"
-        echo "  -r       report missing users to stderr"
-        exit 0
-    ;;
-    "-r")
-        reportMissingUsers="true"
-    ;;
-esac
+if [ $# -ne 0 ]; then
+    echo "A pipeable script for extracting encrypted passwords from /etc/shadow."
+    echo "Usage: $0 [OPTIONS]"
+fi
 
 # Read usernames to extract passwords for.
 while read user_name; do
