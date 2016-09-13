@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# A pipeable script for extracting a subset of /etc/passwd and reformatting it for user migration purposes.
+# A redirectable script for extracting a subset of /etc/passwd and reformatting it for user migration purposes.
  
 set -e  # Exit script on command failures.
 set -u  # Exit script on attempted use of undeclared variables.

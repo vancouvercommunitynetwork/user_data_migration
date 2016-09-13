@@ -20,7 +20,7 @@ file_user_data="temp_passwd_data.txt"
 file_pass_data="temp_shadow_data.txt"
 script_remote_migration="importUsers.sh"
 
-remove_data_files_after_use=false
+remove_data_files_after_use=true
 remove_import_script_after_use=false
 
 # Check for correct number of command-line parameters.
@@ -63,6 +63,8 @@ fi
 # TODO: lock each of the temporary files (separately).
 echo "Extracting local user data."
 ./extractPasswdData.sh < $1 > $file_user_data
+
+echo "Extracting local user passwords."
 ./extractShadowData.sh < $1 > $file_pass_data
 
 echo "Copying user data to home folder of $2"
@@ -78,7 +80,7 @@ echo "Remote migration attempt complete."
 
 # Delete the temporary data files.
 if "$remove_data_files_after_use"; then
-    echo "Removing temporary files from local machine"
+    echo "Removing temporary files from local machine."
     rm $file_user_data
     rm $file_pass_data
     # Delete the remote copies.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# A pipeable script for extracting a subset of /etc/shadow for user migration purposes.
+# A redirectable script for extracting a subset of /etc/shadow for user migration purposes.
  
 set -e  # Exit script on command failures.
 set -u  # Exit script on attempted use of undeclared variables.
@@ -17,7 +17,7 @@ index_expire=7  # days since Jan 1, 1970 that account is disabled
 
 
 if [ $# -ne 0 ]; then
-    echo "A pipeable script for extracting encrypted passwords from /etc/shadow."
+    echo "A script for extracting encrypted passwords from /etc/shadow."
     echo "Usage: $0 [OPTIONS]"
 fi
 

@@ -24,7 +24,6 @@ index_shell=6
 # NOTE: User importing is implemented with a loop because the newusers command has a bug that under hard-to-control circumstances will crash with an "invalid next size" error message. Documentation of this bug is available at: https://bugs.launchpad.net/ubuntu/+source/shadow/+bug/1266675
 echo "REMOTE: Adding new users."
 while read line; do
-    echo "REMOTE: Adding user $line"
     # Split the user's entry by colons into an array.
     IFS=':' read -r -a array_of_field_data <<< "$line"
 
@@ -37,8 +36,9 @@ while read line; do
     field_dir=${array_of_field_data[index_dir]}
     field_shell=${array_of_field_data[index_shell]}
 
-    # Create the new user (do not create a home directory).
-    useradd -u $field_uid -g $field_gid -c "$field_gecos" -M -s $field_shell $field_user
+    # Create the new user (do not create a home directory) and OR with true so "set-e" won't halt the script if a duplicate user is encountered.
+    echo "REMOTE: Adding user $line"
+    useradd -u $field_uid -g $field_gid -c "$field_gecos" -M -s $field_shell $field_user || true
 done <$1
 
 echo "REMOTE: Migrating passwords."
