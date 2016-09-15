@@ -3,24 +3,15 @@
 # TODO:
 #   Check that the destination is reachable.
 #   Check that file copying succeeds before attempting newusers and chpasswd (maybe the files couldn't be created for permission reasons or maybe the transfer failed).
-#   Check that an ssh-key has already been installed to the remote machine and that ssh login is working. Consider making your script automate the ssh-keygen call if needed (maybe that should be a separate "install" script. Any automation of ssh-keygen should check that the specified remote user has superuser privileges.
 #   Test the code for deleting the local temp files.
 #   Write and test the code for deleting the remote temp files and the remote copy of importUsers.sh.
-#   Add constants for exit codes.
 #   Rewrite Readme.md to properly describe the purpose and usage of all these scripts and their input and output files.
-#   Setup locking:
-#       You might need something like lock_file="/var/run/vcn_user_data_migration.lck"
-#   Check for pre-authorized ssh access to remote machine.
+#   Check that an ssh-key has already been installed to the remote machine and that ssh login is working.
 #       Something like this is apparently the way to go:
 #           ssh -o BatchMode=yes -o ConnectTimeout=3 root@192.168.20.45 exit
-#       This will yield an exit code of 255 if connecting failed or 0 if it worked.
+#           This will yield an exit code of 255 if connecting failed or 0 if it worked.
+#       Consider making your script automate the ssh-keygen call if needed (maybe that should be a separate "install" script. Any automation of ssh-keygen should check that the specified remote user has superuser privileges.
 #   Check that at least one user name from the given list was found among the users of this machine, if not then spit out an error to stderr. Then halt the script but give exit status of 0 since not matching any users may be a common occurrence.
-#   Lock each of the temporary files (separately).
-#   Lock all the code after the declarations and definitions (using flock). Example code:
-#       exec 200>$lock
-#       flock -n 200 || exitBecauseOfLockFailure
-#       echo $$ 1>&200
-#   Unlock at the end of the script and unlock temporary files.
 #   Add a remove_remote_temp_files_after_use flag and set it up to delete the temp files and remote copy of importUsers.sh.
 
  
