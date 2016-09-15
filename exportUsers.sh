@@ -39,7 +39,7 @@ script_remote_migration="importUsers.sh"
 # Settings.
 remove_local_temp_files_after_use=true
 remove_import_script_after_use=false
-lock="/var/run/vcn_user_data_migration.lck"
+file_lock="/var/run/vcn_user_data_migration.lck"
 
 # Exit failure status values.
 readonly EXIT_MULTIPLE_INSTANCE=1
@@ -47,9 +47,14 @@ readonly EXIT_BAD_PARAMETERS=2
 readonly EXIT_INSUFFICIENT_USER_LEVEL=3
 readonly EXIT_IMPORT_SCRIPT_NOT_FOUND=4
 
-exitBecauseOfLockFailure(){
-    echo "Instance of $(basename "$0") already running!" 
-    exit $EXIT_MULTIPLE_INSTANCE
+# Attempt an exclusive lock of execution of this script. Exit in the event of failure.
+exclusiveLock() {
+    exec 200>$file_lock
+    flock -n 200 || {
+        echo "ERROR: A previous instance of $(basename $0) is already running."
+        exit $EXIT_MULTIPLE_INSTANCE
+    }
+    echo $$ 1>&200
 }
 
 # Check for correct number of command-line parameters.
@@ -87,6 +92,9 @@ checkImportScriptIsPresent(){
 ############################################################
 #                MAIN BODY OF PROGRAM                      #
 ############################################################
+
+# Prevent more than one instance of this script from executing simultaneously.
+exclusiveLock
 
 # Check that migration prerequisites are met.
 checkParameterCount $#          # The parameter count should be correct.
