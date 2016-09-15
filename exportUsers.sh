@@ -20,8 +20,18 @@ file_user_data="temp_passwd_data.txt"
 file_pass_data="temp_shadow_data.txt"
 script_remote_migration="importUsers.sh"
 
+# Settings
 remove_data_files_after_use=true
 remove_import_script_after_use=false
+lock="/var/run/vcn_user_data_migration.lck"
+
+# Exit failure statuses
+EXIT_MULTIPLE_INSTANCE=1
+
+exitBecauseOfLockFailure(){
+    echo "Instance of $(basename "$0") already running!" 
+    exit 1
+}
 
 # Check for correct number of command-line parameters.
 if [ $# -ne 2 ]; then
@@ -58,6 +68,9 @@ fi
 
 
 # TODO: lock all following code (using flock)
+#exec 200>$lock
+#flock -n 200 || exitBecauseOfLockFailure
+#echo $$ 1>&200
 
 # With all checks completed, proceed to actually doing stuff...
 # TODO: lock each of the temporary files (separately).
