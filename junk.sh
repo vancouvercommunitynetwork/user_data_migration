@@ -1,17 +1,28 @@
 #!/usr/bin/env bash
- 
- 
-lock="/var/run/vcn_user_data_migration.lck"
 
-lockFailureExit(){
-    echo "Instance already running!"
-    exit 1
+lockFile() {
+    local file_to_lock=$1
+    eval "exec {lf_file_handle}>>$file_to_lock"
+    eval "exec $lf_file_handle>>$file_to_lock"
+    flock -n $lf_file_handle || {
+        echo "ERROR: Unable to lock file: $file_to_lock"
+        exit 1
+    }
+    result=$lf_file_handle
 }
 
-exec 200>$lock
-flock -n 200 || lockFailureExit
- 
-echo $$ 1>&200
+unlockFile() {
+    local file_descriptor_to_unlock=$1
+    eval "exec $file_descriptor_to_unlock>&-"
+}
+
+lockFile foo.txt
+file_handle=$result
+
+echo Handle is $file_handle
+
+echo garbage >> foo.txt
 sleep 2
-echo
-echo "Hello world"
+
+unlockFile $file_handle
+
