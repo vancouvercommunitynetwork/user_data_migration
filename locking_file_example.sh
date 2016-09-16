@@ -10,7 +10,7 @@ lockFile() {
         echo "ERROR: Unable to lock file: $file_to_lock"
         exit 1
     }
-    result=$lf_file_handle
+    returnValue=$lf_file_handle
 }
 
 unlockFile() {
@@ -19,7 +19,7 @@ unlockFile() {
 }
 
 lockFile foo.txt
-file_handle=$result
+file_handle=$returnValue
 
 echo Handle is $file_handle
 

@@ -13,6 +13,8 @@
 #       Consider making your script automate the ssh-keygen call if needed (maybe that should be a separate "install" script. Any automation of ssh-keygen should check that the specified remote user has superuser privileges.
 #   Check that at least one user name from the given list was found among the users of this machine, if not then spit out an error to stderr. Then halt the script but give exit status of 0 since not matching any users may be a common occurrence.
 #   Add a remove_remote_temp_files_after_use flag and set it up to delete the temp files and remote copy of importUsers.sh.
+#   Change your lock to generate the first available file descriptor rather than using the magic number of the constant 200.
+#   Setup the helper scripts to use the same lock as exportUsers.sh.
 
  
 ############################################################
@@ -30,7 +32,7 @@ script_remote_migration="importUsers.sh"
 # Settings.
 remove_local_temp_files_after_use=true
 remove_import_script_after_use=false
-file_lock="/var/run/vcn_user_data_migration.lck"
+filename_to_lock="/var/run/vcn_user_data_migration.lck"
 
 # Exit failure status values.
 readonly EXIT_MULTIPLE_INSTANCE=1
@@ -40,7 +42,7 @@ readonly EXIT_IMPORT_SCRIPT_NOT_FOUND=4
 
 # Attempt an exclusive lock of execution of this script. Exit in the event of failure.
 exclusiveLock() {
-    exec 200>$file_lock
+    exec 200>$filename_to_lock
     flock -n 200 || {
         echo "ERROR: A previous instance of $(basename $0) is already running."
         exit $EXIT_MULTIPLE_INSTANCE
