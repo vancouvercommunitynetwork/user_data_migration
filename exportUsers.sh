@@ -31,7 +31,6 @@ script_remote_migration="importUsers.sh"
 
 # Settings.
 remove_local_temp_files_after_use=true
-remove_import_script_after_use=false
 filename_to_lock="/var/run/vcn_user_data_migration.lck"
 
 # Exit failure status values.
@@ -50,17 +49,23 @@ exclusiveLock() {
     echo $$ 1>&200
 }
 
-# Check for correct number of command-line parameters.
-checkParameterCount(){
-    local parameterCount=$1
-    if [ $parameterCount -ne 2 ]; then cat <<HERE
+# Print a description of how the program should be called.
+printUsageMessage(){
+cat <<HERE
 Usage: $0 [USER LIST FILE] [DESTINATION]
-Emigrate given users from this machine to a remote machine. The user list must be a text file containing a newline-separated list of usernames. The network destination needs to be pre-authorized for ssh access which can be done with ssh-keygen.
+Migrate users from this machine to a remote machine. The user list must be a text file containing a newline-separated list of usernames. The network destination needs to be pre-authorized for ssh access which can be done with ssh-keygen.
 
 Example:
   $0 bunch_of_users.txt root@192.168.1.257
 
 HERE
+}
+
+# Check for correct number of command-line parameters.
+checkParameterCount(){
+    local parameterCount=$1
+    if [ $parameterCount -ne 2 ]; then
+        printUsageMessage
         exit $EXIT_BAD_PARAMETERS
     fi
 }
