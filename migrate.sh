@@ -1,49 +1,38 @@
 #!/usr/bin/env bash
 
-# Rough draft
-#If argc != 3 or --help given then output the usage method.
-#If pre-authorized ssh access is unavailable at the source and/or destination then prompt for the password so it can be setup.
-#Read the source passwd and shadow files into an internal array of user data.
-#Iterate through the array executing useradd remotely at the destination.
+# Lockout simulataneous execution of this script.
+exec 200>"/var/run/vcn_user_data_migration.lck"
+flock -n 200 || {
+    echo "ERROR: A previous instance of $(basename $0) is already running."
+    exit 1
+}
+echo $$ 1>&200
 
-
-#For each username in list_of_users:
-#    $passwd_result = grep /etc/passwd
-#    $shadow_result = grep /etc/shadow
-#    if passwd_result and shadow_result are both not null:
-#        split the passwd_result into its fields
-#        split the shadow_result into its fields
-#        use ssh to call useradd on remote machine with the extracted fields
-
-
-
-
-clear
+# For each user...
 while read user_name; do
-    # Get user entries from /etc/passwd and /etc/shadow.
+    # Try to get user's data from /etc/passwd and /etc/shadow.
     passwd_result=$(grep "^$user_name:" /etc/passwd)
     shadow_result=$(grep "^$user_name:" /etc/shadow)
 
-    # If user entries were found extract data from them.
+    # If user's data was found...
     if [ ! -z "$passwd_result" ] && [ ! -z "$shadow_result" ]; then
-        # /etc/passwd fields are indexed as username:password:userID:groupID:gecos:homeDir:shell
+        # Split entry components into arrays of fields.
         IFS=':' read -r -a passwd_fields <<< "$passwd_result"
-        # /etc/shadow fields are indexed as username:password:lastchanged:minimum:maximum:warn:inactive:expire
         IFS=':' read -r -a shadow_fields <<< "$shadow_result"
 
-        echo Migrating user: ${passwd_fields[0]}
+        # Pull the needed fields from the arrays. The field ordering in passwd and shadow are:
+        #    username:password:userID:groupID:gecos:homeDir:shell
+        #    username:password:lastchanged:minimum:maximum:warn:inactive:expire
+        name=${passwd_fields[0]}   # Username.
+        pass=${shadow_fields[1]}   # User's encrypted password.
+        gid=${passwd_fields[3]}    # User's group ID.
+        gecos=${passwd_fields[4]}  # User's info (full name).
+        shell="/sbin/nologin"      # Shell disabled for security.        
 
-        # Remotely add user accounts (ssh will halt loop without -n). See above for index meanings. Users are not intended to have shell login.
-        ssh -n $1 /usr/sbin/useradd -p \'${shadow_fields[1]}\' -g ${passwd_fields[3]} -c \"${passwd_fields[4]}\" -M -s "/sbin/nologin" ${passwd_fields[0]}
+        # Remotely add user accounts (ssh will halt loop without -n).
+        echo Migrating user: $name
+        ssh -n $1 deluser $name
+        ssh -n $1 /usr/sbin/useradd -p \'$pass\' -g $gid -c \"$gecos\" -M -s $shell $name
     fi
 done <"$2"
 
-exit 0
-
-
-Current ideas
-    figure out how the useradd -p is supposed to work 
-    call chpasswd -e and find someway to feed a string into it as if it were a file
-        this must be able to work because it works for exportUsers.sh. "chpass -e < tempShadow.txt" creates an account that I can then "su - test8" into (from test9) and it will prompt for password and the password works.
-        <<< doesn't seem to work the way I thought it does
-        
