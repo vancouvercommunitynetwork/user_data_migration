@@ -25,13 +25,13 @@ set -e  # Exit script on command failures.
 set -u  # Exit script on attempted use of undeclared variables.
 
 # Files that will be passed to the remote machine.
-file_user_data="temp_passwd_data.txt"
-file_pass_data="temp_shadow_data.txt"
-script_remote_migration="importUsers.sh"
+temp_passwd_data="temp_passwd_data.txt"
+temp_shadow_data="temp_shadow_data.txt"
+remote_migration_script="importUsers.sh"
 
 # Settings.
 remove_local_temp_files_after_use=true
-filename_to_lock="/var/run/vcn_user_data_migration.lck"
+lock_file="/var/run/vcn_user_data_migration.lck"
 
 # Exit failure status values.
 readonly EXIT_MULTIPLE_INSTANCE=1
@@ -41,7 +41,7 @@ readonly EXIT_IMPORT_SCRIPT_NOT_FOUND=4
 
 # Attempt an exclusive lock of execution of this script. Exit in the event of failure.
 exclusiveLock() {
-    exec 200>$filename_to_lock
+    exec 200>$lock_file
     flock -n 200 || {
         echo "ERROR: A previous instance of $(basename $0) is already running."
         exit $EXIT_MULTIPLE_INSTANCE
@@ -80,8 +80,8 @@ checkUserLevel(){
 
 # Check that a local copy of the importation script is present.
 checkImportScriptIsPresent(){
-    if [ ! -f "$script_remote_migration" ]; then
-        echo "Could not find local copy of remote migration script: $script_remote_migration"
+    if [ ! -f "$remote_migration_script" ]; then
+        echo "Could not find local copy of remote migration script: $remote_migration_script"
         exit $EXIT_IMPORT_SCRIPT_NOT_FOUND
     fi
 }
@@ -104,27 +104,27 @@ user_list=$1
 destination=$2
 
 # Proceed with migration.
-echo "Extracting local user data to: $file_user_data"
-./extractPasswdData.sh < $user_list > $file_user_data
+echo "Extracting local user data to: $temp_passwd_data"
+./extractPasswdData.sh < $user_list > $temp_passwd_data
 
-echo "Extracting local user passwords to: $file_pass_data"
-./extractShadowData.sh < $user_list > $file_pass_data
+echo "Extracting local user passwords to: $temp_shadow_data"
+./extractShadowData.sh < $user_list > $temp_shadow_data
 
 echo "Copying user data to home folder of $destination"
-scp $file_user_data $destination:~
-scp $file_pass_data $destination:~
+scp $temp_passwd_data $destination:~
+scp $temp_shadow_data $destination:~
 
 echo "Copying remote migration script to home folder of $destination"
-scp $script_remote_migration $destination:~
+scp $remote_migration_script $destination:~
 
 echo "Attempting to execute remote migration script on destination machine..."
-ssh -t $destination "./$script_remote_migration $file_user_data $file_pass_data"
+ssh -t $destination "./$remote_migration_script $temp_passwd_data $temp_shadow_data"
 echo "Remote migration attempt complete."
 
 # Delete the temporary data files.
 if "$remove_local_temp_files_after_use"; then
     echo "Removing temporary files from local machine."
-    rm $file_user_data
-    rm $file_pass_data
+    rm $temp_passwd_data
+    rm $temp_shadow_data
 fi
 
