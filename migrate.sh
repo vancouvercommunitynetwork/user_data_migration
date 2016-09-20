@@ -18,24 +18,20 @@
 
 
 
-
+clear
 while read user_name; do
     # Get user entries from /etc/passwd and /etc/shadow.
     passwd_result=$(grep "^$user_name:" /etc/passwd)
     shadow_result=$(grep "^$user_name:" /etc/shadow)
 
-    # If user entries were found extract date from them.
+    # If user entries were found extract data from them.
     if [ ! -z "$passwd_result" ] && [ ! -z "$shadow_result" ]; then
-        # /etc/passwd entries are of the form "username:password:userID:groupID:gecos:homeDir:shell"
         IFS=':' read -r -a passwd_fields <<< "$passwd_result"
-        # /etc/
         IFS=':' read -r -a shadow_fields <<< "$shadow_result"
-        echo Migrating user: $passwd_result
-        # The following indices are based on the standard ordering used in /etc/passwd and /etc/shadow:
-        ssh $1 echo "${passwd_fields[4]}"
-#        ssh $1 /usr/sbin/useradd -u ${passwd_fields[2]} -g ${passwd_fields[3]} -c $"{passwd_fields[4]}" -M -s "/sbin/nologin" ${passwd_fields[0]}
-        ssh $1 /usr/sbin/useradd -u ${passwd_fields[2]} -g ${passwd_fields[3]} -c \"${passwd_fields[4]}\" -M -s "/sbin/nologin" ${passwd_fields[0]}
-        # FIND A WAY TO TRANSFER THE QUOTES AROUND -c ARGUMENT SO SPACES IN gecos WILL NOT BREAK THINGS
+        echo Migrating user: ${passwd_fields[0]}
+        # /etc/passwd entries are indexed as username:password:userID:groupID:gecos:homeDir:shell
+        ssh -n $1 /usr/sbin/useradd -u ${passwd_fields[2]} -g ${passwd_fields[3]} -c \"${passwd_fields[4]}\" -M -s "/sbin/nologin" ${passwd_fields[0]}
+        # /etc/shadow are entries indexed as username:password
     fi
 done <"$2"
 
