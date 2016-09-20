@@ -1,4 +1,4 @@
-
+#!/usr/bin/env bash
 
 # Rough draft
 #If argc != 3 or --help given then output the usage method.
@@ -16,7 +16,7 @@
 #        use ssh to call useradd on remote machine with the extracted fields
 
 
-#!/bin/bash
+
 
 
 while read user_name; do
@@ -32,14 +32,12 @@ while read user_name; do
         IFS=':' read -r -a shadow_fields <<< "$shadow_result"
         echo Migrating user: $passwd_result
         # The following indices are based on the standard ordering used in /etc/passwd and /etc/shadow:
-        #    username:password:userID:groupID:gecos:homeDir:shell
-        #    username:password
-#        useradd -u ${passwd_fields[2]} -g ${passwd_fields[3]} -c "${passwd_fields[4]}" -M -s /sbin/nologin ${passwd_fields[0]}
-        ssh pi@192.168.1.11 /usr/sbin/useradd -u ${passwd_fields[2]} -g ${passwd_fields[3]} -c ${passwd_fields[4]} -M -s /sbin/nologin ${passwd_fields[0]}
-        #ssh pi@192.168.1.11 /usr/sbin/useradd -u 1001 -g 1000 -c username -M -s "/sbin/nologin" username
+        ssh $1 echo "${passwd_fields[4]}"
+#        ssh $1 /usr/sbin/useradd -u ${passwd_fields[2]} -g ${passwd_fields[3]} -c $"{passwd_fields[4]}" -M -s "/sbin/nologin" ${passwd_fields[0]}
+        ssh $1 /usr/sbin/useradd -u ${passwd_fields[2]} -g ${passwd_fields[3]} -c \"${passwd_fields[4]}\" -M -s "/sbin/nologin" ${passwd_fields[0]}
         # FIND A WAY TO TRANSFER THE QUOTES AROUND -c ARGUMENT SO SPACES IN gecos WILL NOT BREAK THINGS
     fi
-done <"$1"
+done <"$2"
 
 exit 0
 
