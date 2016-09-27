@@ -88,7 +88,7 @@ while read user_name; do
         pass=${shadow_fields[1]}     # User's encrypted password.
         gid=${passwd_fields[3]}      # User's group ID.
         gecos=${passwd_fields[4]}    # User's info (full name).
-        shell="/usrb/sbin/nologin"   # Shell disabled for security.        
+        shell="/usr/sbin/nologin"   # Shell disabled for security.        
 
         # Remotely add user accounts (ssh will halt loop without -n).
         echo Migrating user: $name
