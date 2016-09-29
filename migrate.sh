@@ -2,16 +2,12 @@
 
 # TODO:
 #   Check that the destination is reachable.
-#   Rewrite Readme.md to properly describe the purpose and usage of this scripts and their input and output files.
 #   Check that an ssh-key has already been installed to the remote machine and that ssh login is working.
 #       Something like this is apparently the way to go:
 #           ssh -o BatchMode=yes -o ConnectTimeout=3 root@192.168.20.45 exit
 #           This will yield an exit code of 255 if connecting failed or 0 if it worked.
-#       Consider making your script automate the ssh-keygen call if needed (maybe that should be a separate "install" script. Any automation of ssh-keygen should check that the specified remote user has superuser privileges.
 #   Check that at least one user name from the given list was found among the users of this machine, if not then spit out an error to stderr. Then halt the script but give exit status of 0 since not matching any users may be a common occurrence.
-#   Add a remove_remote_temp_files_after_use flag and set it up to delete the temp files and remote copy of importUsers.sh.
 #   Change your lock to generate the first available file descriptor rather than using the magic number of the constant 200.
-#   Setup the helper scripts to use the same lock as exportUsers.sh.
 
 ############################################################
 #              DECLARATIONS AND DEFINITIONS                #

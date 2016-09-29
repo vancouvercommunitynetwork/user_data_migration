@@ -16,7 +16,7 @@
 ###  - The list of usernames will grow to be a large file consisting primarily of redundant users who already exist on the remote machine but must be updated in case their information has changed (their password in particular).
 
 ## Program Requirements
-###  - This program must be run as the superuser so it can access /etc/passwd, /etc/shadow and execution lock file that prevents more than one instance from running.
+###  - This program must be run as the superuser so it can access /etc/shadow and the execution lock file that prevents more than one instance from running.
 ###  - This program must be pre-authorized for ssh access on the remote machine using ssh-keygen.
 ###  - Pre-authorized access must be connecting to the superuser account on the remote machine so it can remotely alter user accounts.
 ###  - Locale forwarding should be disabled to prevent ssh error messages if local and remote locale information differs (comment out SendEnv in the local /etc/ssh/ssh_config or AcceptEnv in the remote machine's /etc/ssh/ssh_config). The program will still work if you don't take care of this but a ton of warnings will be getting dumped to the local machine if the locales don't match.
