@@ -149,10 +149,11 @@ save_cache() {
 
     # Build content from current_cache associative array
     for username in "${!current_cache[@]}"; do
-	content+="$current_cache[$username]}"$'\n'
+	content+="${current_cache[$username]}"$'\n'
+    done
 
     # Save current user data to cache file for next run
-    if ! echo "$cache_data" > "$CACHE_FILE"; then
+    if ! echo "$content" > "$CACHE_FILE"; then
         echo "Warning: Could not save cache file" >&2
     fi
 }
@@ -161,8 +162,8 @@ save_cache() {
 backup_previous_cache() {
     if [[ -f "$CACHE_FILE" ]]; then
 	local backup_file="${CACHE_FILE}.backup"
-        if mv "CACHE_FILE" "$backup_file"; then
-            echo "Previous cache backup up to: $backup_file"
+        if mv "$CACHE_FILE" "$backup_file"; then
+            echo "Previous cache backed up to: $backup_file"
         else
 	    echo "Warning: Could not backup cache file" >&2
         fi
@@ -191,7 +192,7 @@ user_needs_migration() {
 	    echo " $username: User deleted locally, will be deleted from server"
 	    USERS_TO_DELETE+=("$username")
 	fi
-    return
+        return
     fi
 
     # Check for created users - user present in passwd/shadow file but not found in previous run cache
@@ -202,7 +203,7 @@ user_needs_migration() {
 	else
 	    echo " $username not found locally or in previous cache, skipping"
 	fi
-    return
+        return
     fi
 
     # Check for changes in existing users
@@ -213,7 +214,7 @@ user_needs_migration() {
     fi
 
     # No changes detected
-    echo " $username" No changes, skipping"
+    echo " $username: No changes, skipping"
 }
 
 # ========== REMOTE OPERATIONS ==========
@@ -221,14 +222,14 @@ user_needs_migration() {
 bulk_migrate_users() {
     local destination="$1"
 
-    if [[ ${USERS_TO_MIGRATE[@]} -eq 0 && ${USERS_TO_DELETE[@]} -eq 0 ]]; then
+    if [[ ${#USERS_TO_MIGRATE[@]} -eq 0 && ${#USERS_TO_DELETE[@]} -eq 0 ]]; then
 	echo "No operations to perform"
 	return
     fi
 
     echo "Creating migration script..."
     local script_content
-    script_content = $(create_migration_script)
+    script_content=$(create_migration_script)
 
     echo "Executing remote operations..."
     execute_migration_script "$destination" "$script_content"
@@ -254,7 +255,7 @@ create_migration_script() {
     # Add delete operations
     if [[ ${#USERS_TO_DELETE[@]} -gt 0 ]]; then
 	for username in "${USERS_TO_DELETE[@]}"; do
-	    script_lines+="$(delete_remote_user "$username)\n"
+	    script_lines+="$(delete_remote_user "$username")\n"
 	done
     	script_lines+="\n"
     fi
@@ -262,10 +263,10 @@ create_migration_script() {
     # Add migrate operations
     if [[ ${#USERS_TO_MIGRATE[@]} -gt 0 ]]; then
 	for user_data in "${USERS_TO_MIGRATE[@]}"; do
-	    IFS":" read -ra user_fields <<< "$user_data" # Split data into array to extract username
+	    IFS=":" read -ra user_fields <<< "$user_data" # Split data into array to extract username
 	    local username="${user_fields[0]}"
-	    script_lines+="$(delete_remote_user "$username")\n
-	    script_lines+="$(create_remote_user "$user_data")\n
+	    script_lines+="$(delete_remote_user "$username")\n"
+	    script_lines+="$(create_remote_user "$user_data")\n"
 	done
     fi
 
@@ -344,8 +345,8 @@ main() {
     done
 
     # Look for users removed from input list but remain in cache
-    for cached_username in "${previous_cache[@]}"; do
-	if [[ -z "${input_users_set[$cached_username]} ]]; then
+    for cached_username in "${!previous_cache[@]}"; do
+	if [[ -z "${input_users_set[$cached_username]}" ]]; then
 	    echo " $cached_username: User no longer in input list, will remove from remote machine"
 	    USERS_TO_DELETE+=("$cached_username")
 	fi
@@ -364,3 +365,4 @@ main() {
     echo "Migration complete"
 }
 
+main "$@"
