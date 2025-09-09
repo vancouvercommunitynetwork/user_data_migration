@@ -43,8 +43,8 @@ lock_program_execution() {
     exec 200>"${LOCK_FILE}"
     # Try acquire exclusive lock over file to ensure only 1 script instace running
     if ! flock -n 200; then
-	echo "ERROR: An instance of ${PROGRAM_NAME} is already running."
-	exit ${EXIT_MULTIPLE_INSTANCES}
+        echo "ERROR: An instance of ${PROGRAM_NAME} is already running."
+        exit ${EXIT_MULTIPLE_INSTANCES}
     fi
 
     # Write PID to lock file for debugging
@@ -53,15 +53,15 @@ lock_program_execution() {
 
 check_parameter_count() {
     if  [[ $# -ne 2 ]]; then 
-	print_usage_message
-	exit ${EXIT_BAD_PARAMETERS}
+        print_usage_message
+        exit ${EXIT_BAD_PARAMETERS}
     fi
 }
 
 check_user_level() {
     if [[ $EUID -ne 0 ]]; then 
-	echo "ERROR: ${PROGRAM_NAME} must be called with root privileges so it can read /etc/shadow."
-	exit ${EXIT_INSUFFICIENT_USER_LEVEL}
+        echo "ERROR: ${PROGRAM_NAME} must be called with root privileges so it can read /etc/shadow."
+        exit ${EXIT_INSUFFICIENT_USER_LEVEL}
     fi
 }
 
@@ -73,7 +73,7 @@ find_user_in_file() {
     local filepath="$2"
 
     if [[ -r "$filepath" ]]; then
-	grep "^${username}:" "$filepath" 2>/dev/null
+        grep "^${username}:" "$filepath" 2>/dev/null
     fi
 }
 
@@ -85,7 +85,7 @@ get_user_data() {
     shadow_entry=$(find_user_in_file "$username" "$SHADOW_FILE")
 
     if [[ -z "$passwd_entry" || -z "$shadow_entry" ]]; then
-	return 1
+        return 1
     fi
 
     # Parse passwd entry - username:password:userID:groupID:gecos:homeDir:shell
@@ -105,15 +105,15 @@ read_user_list() {
 
     # Make sure the file is readable
     if [[ ! -r "$user_list_file" ]]; then
-	echo "Error reading user list file: $user_list_file" >&2
-	exit 1
+        echo "Error reading user list file: $user_list_file" >&2
+        exit 1
     fi
 
     # loop over the file and add usernames to list
     while IFS= read -r username; do
-	username=$(echo "$username" | tr -d '[:space:]')
-	if [[ -n "$username" ]]; then 
-	    usernames+=("$username")
+        username=$(echo "$username" | tr -d '[:space:]')
+        if [[ -n "$username" ]]; then 
+            usernames+=("$username")
 	fi
     done <  "$user_list_file"
 
@@ -129,17 +129,17 @@ load_cache() {
 
     # Extract line from file and store in cache
     if [[ -r "$CACHE_FILE" ]]; then
-	while IFS= read -r line; do
-	    if [[ -n "$line" ]]; then
-		local username="${line%%:*}"
-		cache["$username"]="$line"
-	    fi
-	done < "$CACHE_FILE"
+        while IFS= read -r line; do
+            if [[ -n "$line" ]]; then
+                local username="${line%%:*}"
+                cache["$username"]="$line"
+            fi
+        done < "$CACHE_FILE"
     fi
 
     # Output all cache entries as key-value pairs
     for username in "${!cache[@]}"; do
-	echo "${username}=${cache[$username]}"
+        echo "${username}=${cache[$username]}"
     done
 }
 
@@ -149,7 +149,7 @@ save_cache() {
 
     # Build content from current_cache associative array
     for username in "${!current_cache[@]}"; do
-	content+="${current_cache[$username]}"$'\n'
+        content+="${current_cache[$username]}"$'\n'
     done
 
     # Save current user data to cache file for next run
@@ -161,7 +161,7 @@ save_cache() {
 # Update backup cache with previous run's cache
 backup_previous_cache() {
     if [[ -f "$CACHE_FILE" ]]; then
-	local backup_file="${CACHE_FILE}.backup"
+        local backup_file="${CACHE_FILE}.backup"
         if mv "$CACHE_FILE" "$backup_file"; then
             echo "Previous cache backed up to: $backup_file"
         else
@@ -180,37 +180,37 @@ user_needs_migration() {
 
     # Check for users deleted previously but still in input list
     if [[ -z "$current_user_data" ]]; then
-    	if [[ -z "$previous_cache_entry" ]]; then
+        if [[ -z "$previous_cache_entry" ]]; then
             echo " $username: User not found locally or in backup cache, skipping"
             return
-    	fi
+        fi
     fi
 
     # Check for recently deleted users - user absent from passwd/shadow file but found in previous run cache
     if [[ -z "$current_user_data" ]]; then
-	if [[ -n "$previous_cache_entry" ]]; then
+        if [[ -n "$previous_cache_entry" ]]; then
 	    echo " $username: User deleted locally, will be deleted from server"
 	    USERS_TO_DELETE+=("$username")
-	fi
+        fi
         return
     fi
 
     # Check for created users - user present in passwd/shadow file but not found in previous run cache
     if [[ -z "$previous_cache_entry" ]]; then
-	if [[ -n "$current_user_data" ]]; then
-	    echo " $username: New user"
-	    USERS_TO_MIGRATE+=("$current_user_data")
+        if [[ -n "$current_user_data" ]]; then
+            echo " $username: New user"
+            USERS_TO_MIGRATE+=("$current_user_data")
 	else
-	    echo " $username not found locally or in previous cache, skipping"
-	fi
+            echo " $username not found locally or in previous cache, skipping"
+        fi
         return
     fi
 
     # Check for changes in existing users
     if [[ "$current_user_data" != "$previous_cache_entry" ]]; then
-	echo " $username: User data changed"
-	USERS_TO_MIGRATE+=("$current_user_data")
-	return
+        echo " $username: User data changed"
+        USERS_TO_MIGRATE+=("$current_user_data")
+        return
     fi
 
     # No changes detected
@@ -223,8 +223,8 @@ bulk_migrate_users() {
     local destination="$1"
 
     if [[ ${#USERS_TO_MIGRATE[@]} -eq 0 && ${#USERS_TO_DELETE[@]} -eq 0 ]]; then
-	echo "No operations to perform"
-	return
+        echo "No operations to perform"
+        return
     fi
 
     echo "Creating migration script..."
@@ -242,9 +242,9 @@ execute_migration_script() {
 
     # Send script via stdin to remote bash and execute it
     if echo "$script_content" | ssh "$destination" 'bash'; then
-	echo "Remote script executed successfully"
+        echo "Remote script executed successfully"
     else
-	echo "Remote script failed"
+        echo "Remote script failed"
     fi
 } 
 
@@ -254,20 +254,20 @@ create_migration_script() {
 
     # Add delete operations
     if [[ ${#USERS_TO_DELETE[@]} -gt 0 ]]; then
-	for username in "${USERS_TO_DELETE[@]}"; do
-	    script_lines+="$(delete_remote_user "$username")\n"
-	done
-    	script_lines+="\n"
+        for username in "${USERS_TO_DELETE[@]}"; do
+            script_lines+="$(delete_remote_user "$username")\n"
+        done
+        script_lines+="\n"
     fi
 
     # Add migrate operations
     if [[ ${#USERS_TO_MIGRATE[@]} -gt 0 ]]; then
-	for user_data in "${USERS_TO_MIGRATE[@]}"; do
-	    IFS=":" read -ra user_fields <<< "$user_data" # Split data into array to extract username
-	    local username="${user_fields[0]}"
-	    script_lines+="$(delete_remote_user "$username")\n"
-	    script_lines+="$(create_remote_user "$user_data")\n"
-	done
+        for user_data in "${USERS_TO_MIGRATE[@]}"; do
+            IFS=":" read -ra user_fields <<< "$user_data" # Split data into array to extract username
+            local username="${user_fields[0]}"
+            script_lines+="$(delete_remote_user "$username")\n"
+            script_lines+="$(create_remote_user "$user_data")\n"
+        done
     fi
 
     echo -e "$script_lines"
@@ -313,7 +313,7 @@ main() {
     echo "Loading previous cache"
     declare -A previous_cache
     while IFS='=' read -r username cache_entry; do
-	previous_cache["$username"]="$cache_entry"
+        previous_cache["$username"]="$cache_entry"
     done < <(load_cache)
     backup_previous_cache
 
@@ -337,26 +337,26 @@ main() {
 
         # Add the user data to the current cache
         if [[ -n "$current_user_data" ]]; then
-	    current_cache["$username"]="$current_user_data"
-	fi
+            current_cache["$username"]="$current_user_data"
+        fi
 
-	# determine if user needs migration
-	user_needs_migration "$username" "$current_user_data" "${previous_cache[$username]}"
+        # determine if user needs migration
+        user_needs_migration "$username" "$current_user_data" "${previous_cache[$username]}"
     done
 
     # Delete users removed from input list but remain in cache
     for cached_username in "${!previous_cache[@]}"; do
-	if [[ -z "${input_users_set[$cached_username]}" ]]; then
-	    echo " $cached_username: User no longer in input list, will remove from remote machine"
-	    USERS_TO_DELETE+=("$cached_username")
-	fi
+        if [[ -z "${input_users_set[$cached_username]}" ]]; then
+            echo " $cached_username: User no longer in input list, will remove from remote machine"
+            USERS_TO_DELETE+=("$cached_username")
+        fi
     done
 
     # Perform all remote operations in a single SSH connection
     if [[ ${#USERS_TO_DELETE[@]} -gt 0 || ${#USERS_TO_MIGRATE[@]} -gt 0 ]]; then
-	bulk_migrate_users "$destination"
+        bulk_migrate_users "$destination"
     else
-	echo "No users need migration or deletion"
+        echo "No users need migration or deletion"
     fi
 
     # Save current cache for next run
