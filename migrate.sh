@@ -293,9 +293,13 @@ create_remote_user() {
     # Replace dollar signs in password hash by replacing them with \\$
     password_hash="${password_hash//$/\\$}"
 
-    # Produce full command (force group ID to 100 for testing. Replace 100 with ${user_fields[2]} to preserve group ID)
-    echo "/usr/sbin/useradd -p '$password_hash' -g 100 -c \"$gecos\" -M -s $shell $username > /dev/null 2> /dev/null" 
+    # Create group first
+    echo "groupadd -g $group_id -f group$group_id > /dev/null 2>&1"
+
+    # Produce full command 
+    echo "/usr/sbin/useradd -p '$password_hash' -g $group_id -c \"$gecos\" -M -s $shell $username > /dev/null 2> /dev/null" 
 }
+
 
 
 # ========== MAIN PROGRAM BODY ==========

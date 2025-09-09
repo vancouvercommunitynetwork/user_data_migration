@@ -45,21 +45,16 @@ echo "testuser2:password456" | sudo chpasswd
 echo "testuser3:password789" | sudo chpasswd
 
 # Run the script WITH PROVIDED TEST_USERS.TXT FILE
-sudo ./migrate.sh root@[ip address] test_users.yxy
+sudo ./migrate.sh root@[ip address] test_users.txt
 ```
 
 ### How it Works
 
 ---
 
-**Core Mechanisms:**
+1. The script maintains a cache file that stores a snapshot of user data from the previous run. It compares the current state of users against it to identify changes.
+2. Migrate.sh builds a script containing commands to create/delete users. It executes that script in the remote machine over a single SSH connection.
 
-1. The script maintains a cache file that stores a snapshot of user data from the previous run. It compares the current state of users against it to identify changes
-2. Instead of performing each update over a single SSH connection, the migrate.sh builds a script of commands to create/delete users. It executes that script in the remote machine over a single SSH connection.
-
-**Process Overview:**
-
-![diagram.png](diagram.png)
 ### Program Requirements
 
 ---
@@ -88,7 +83,3 @@ Dealing with scenario 1 is easy. Script takes the username and checks if it is a
 Dealing with scenario 2 requires special handling. The script will iterate over all the values in the previous cache and look for them in the usernames from users_list.txt. If it finds a username that is not present in the users_list.txt, the user must have been deleted, and is added to USERS_TO_DELETE
 
 **NOTE**: If deleted usernames remain in the users_list.txt, lines 347-353 from the script can be removed. 
-
-**Group IDs**
-
-The script is written to force group ID to 100 in create_remote_user() method. This was done for testing purposes. A comment in the method describes how to change that for real-life use.
