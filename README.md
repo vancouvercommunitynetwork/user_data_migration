@@ -52,14 +52,9 @@ sudo ./migrate.sh root@[ip address] test_users.yxy
 
 ---
 
-**Core Mechanisms:**
+1. The script maintains a cache file that stores a snapshot of user data from the previous run. It compares the current state of users against it to identify changes.
+2. Migrate.sh builds a script containing commands to create/delete users. It executes that script in the remote machine over a single SSH connection.
 
-1. The script maintains a cache file that stores a snapshot of user data from the previous run. It compares the current state of users against it to identify changes
-2. Instead of performing each update over a single SSH connection, the migrate.sh builds a script of commands to create/delete users. It executes that script in the remote machine over a single SSH connection.
-
-**Process Overview:**
-
-![diagram.png](diagram.png)
 ### Program Requirements
 
 ---
