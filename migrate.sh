@@ -328,21 +328,23 @@ main() {
     declare -A current_cache    # Updated representation of shadow and passwd files
 
     # Iterate over usernames input file 
-    for username in "${usernames[@]}"; do
-        local current_user_data
-        current_user_data=$(get_user_data "$username")
+    if [[ -n "${usernames[@]}" ]]; then
+        for username in "${usernames[@]}"; do
+            local current_user_data
+            current_user_data=$(get_user_data "$username")
 
-        # Add username to input_users_set for later checking
-        input_users_set["$username"]=1
+            # Add username to input_users_set for later checking
+            input_users_set["$username"]=1
 
-        # Add the user data to the current cache
-        if [[ -n "$current_user_data" ]]; then
-            current_cache["$username"]="$current_user_data"
-        fi
+            # Add the user data to the current cache
+            if [[ -n "$current_user_data" ]]; then
+                current_cache["$username"]="$current_user_data"
+            fi
 
-        # determine if user needs migration
-        user_needs_migration "$username" "$current_user_data" "${previous_cache[$username]}"
-    done
+            # determine if user needs migration
+            user_needs_migration "$username" "$current_user_data" "${previous_cache[$username]}"
+        done
+    fi
 
     # Delete users removed from input list but remain in cache
     for cached_username in "${!previous_cache[@]}"; do
