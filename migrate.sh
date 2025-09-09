@@ -293,7 +293,7 @@ create_remote_user() {
     # Replace dollar signs in password hash by replacing them with \\$
     password_hash="${password_hash//$/\\$}"
 
-    # Produce full command (force group ID to 100)
+    # Produce full command (force group ID to 100 for testing. Replace 100 with ${user_fields[2]} to preserve group ID)
     echo "/usr/sbin/useradd -p '$password_hash' -g 100 -c \"$gecos\" -M -s $shell $username > /dev/null 2> /dev/null" 
 }
 
@@ -329,14 +329,14 @@ main() {
 
     # Iterate over usernames input file 
     for username in "${usernames[@]}"; do
-	local current_user_data
-	current_user_data=$(get_user_data "$username")
+        local current_user_data
+        current_user_data=$(get_user_data "$username")
 
-	# Add username to input_users_set for later checking
-	input_users_set["$username"]=1
+        # Add username to input_users_set for later checking
+        input_users_set["$username"]=1
 
-	# Add the user data to the current cache
-	if [[ -n "$current_user_data" ]]; then
+        # Add the user data to the current cache
+        if [[ -n "$current_user_data" ]]; then
 	    current_cache["$username"]="$current_user_data"
 	fi
 
@@ -344,7 +344,7 @@ main() {
 	user_needs_migration "$username" "$current_user_data" "${previous_cache[$username]}"
     done
 
-    # Look for users removed from input list but remain in cache
+    # Delete users removed from input list but remain in cache
     for cached_username in "${!previous_cache[@]}"; do
 	if [[ -z "${input_users_set[$cached_username]}" ]]; then
 	    echo " $cached_username: User no longer in input list, will remove from remote machine"
