@@ -20,6 +20,7 @@ declare -a USERS_TO_MIGRATE
 declare -a USERS_TO_DELETE
 declare -A CURRENT_CACHE
 
+
 # ========== INITIALIZATION FUNCTIONS ==========
 
 print_usage_message() {
@@ -76,6 +77,7 @@ check_file_empty() {
     fi
 }
 
+
 # ========== USER DATA FUNCTIONS ==========
 
 find_user_in_file() {
@@ -128,6 +130,56 @@ read_user_list() {
     done <  "$user_list_file"
 
     printf '%s\n' "${usernames[@]}"
+}
+
+
+# ========== CACHE MANAGEMENT FUNCTIONS ==========
+
+# Extract all user data from previous run's cache
+load_cache() {
+    declare -A cache
+
+    # Extract line from file and store in cache
+    if [[ -r "$CACHE_FILE" ]]; then
+        while IFS= read -r line; do
+            if [[ -n "$line" ]]; then
+                local username="${line%%:*}"
+                cache["$username"]="$line"
+            fi
+        done < "$CACHE_FILE"
+    fi
+
+    # Output all cache entries as key-value pairs
+    for username in "${!cache[@]}"; do
+        echo "${username}=${cache[$username]}"
+    done
+}
+
+# Saves newly built cache to cache location
+save_cache() {
+    local content=""
+
+    # Build content from current_cache associative array
+    for username in "${!current_cache[@]}"; do
+        content+="${current_cache[$username]}"$'\n'
+    done
+
+    # Save current user data to cache file for next run
+    if ! echo "$content" > "$CACHE_FILE"; then
+        echo "Warning: Could not save cache file" >&2
+    fi
+}
+
+# Update backup cache with previous run's cache
+backup_previous_cache() {
+    if [[ -f "$CACHE_FILE" ]]; then
+        local backup_file="${CACHE_FILE}.backup"
+        if mv "$CACHE_FILE" "$backup_file"; then
+            echo "Previous cache backed up to: $backup_file"
+        else
+	    echo "Warning: Could not backup cache file" >&2
+        fi
+    fi
 }
 
 
