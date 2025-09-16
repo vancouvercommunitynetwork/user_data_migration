@@ -33,45 +33,61 @@ declare -a USERS_TO_MIGRATE
 declare -a USERS_TO_DELETE
 declare -A CURRENT_CACHE
 
-# Print a description of how the program should be called.
-printUsageMessage(){
-cat <<HERE
-Usage: $0 [DESTINATION] [USER LIST FILE]
-Migrate users from this machine to a remote machine. The user list must be a text file containing a newline-separated list of usernames. The network destination needs to be pre-authorized for ssh access which can be done with ssh-keygen.
+# ========== INITIALIZATION FUNCTIONS ==========
 
-Example:
-  $0 root@192.168.1.257 bunch_of_users.txt
+print_usage_message() {
+    cat << EOF
+Usage: ${PROGRAM_NAME} [DESTINATION] [USER LIST FILE]
 
-HERE
+Description: This script migrates users from a local machine to a remote machine
+
+Prereq 1: The users file must be a text file containing a list of newline-separated usernames
+Prereq 2: The network destination must be pre-authorized for ssh access
+
+Example: ${PROGRAM_NAME} root@192.168.172.154 list_of_users.txt
+EOF
 }
 
-# Attempt an exclusive lock of execution of this script. Exit in the event of failure.
-lockProgramExecution() {
-    exec 200>$lock_file
-    flock -n 200 || {
-        echo "ERROR: A previous instance of $(basename $0) is already running."
-        exit $EXIT_MULTIPLE_INSTANCE
-    }
-    echo $$ 1>&200
+lock_program_execution() {
+    # Arbitrarily open/create file using descriptor 200 - potential source of issues if descriptor taken
+    exec 200>"${LOCK_FILE}"
+    # Try acquire exclusive lock over file to ensure only 1 script instace running
+    if ! flock -n 200; then
+        echo "ERROR: An instance of ${PROGRAM_NAME} is already running."
+        exit ${EXIT_MULTIPLE_INSTANCES}
+    fi
+
+    # Write PID to lock file for debugging
+    echo $$ >&200
 }
 
-# Check for correct number of command-line parameters.
-checkParameterCount(){
-    local parameterCount=$1
-    if [ $parameterCount -ne 2 ]; then
-        printUsageMessage
-        exit $EXIT_BAD_PARAMETERS
+check_parameter_count() {
+    if  [[ $# -ne 2 ]]; then 
+        print_usage_message
+        exit ${EXIT_BAD_PARAMETERS}
     fi
 }
 
-# Check for superuser privileges.
-checkUserLevel(){
-    if (( $EUID != 0 )); then
-        echo "ERROR: $(basename $0) must be called as sudo so it can read /etc/shadow."
-        exit $EXIT_INSUFFICIENT_USER_LEVEL
+check_user_level() {
+    if [[ $EUID -ne 0 ]]; then 
+        echo "ERROR: ${PROGRAM_NAME} must be called with root privileges so it can read /etc/shadow."
+        exit ${EXIT_INSUFFICIENT_USER_LEVEL}
     fi
 }
 
+check_file_empty() {
+    local user_list_file="$1"
+
+    if [[ ! -r "$user_list_file" ]]; then
+        echo "Error: Cannot read user list file" >&2
+        exit ${EXIT_BAD_PARAMETERS}
+    fi
+
+    if [[ ! -s "$user_list_file" ]]; then
+        echo "Error: User list file is empty" >&2
+        exit ${EXIT_BAD_PARAMETERS}
+    fi
+}
 
 ############################################################
 #                MAIN BODY OF PROGRAM                      #
