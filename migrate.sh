@@ -230,6 +230,89 @@ user_needs_migration() {
 }
 
 
+# ========== REMOTE OPERATIONS ==========
+
+bulk_migrate_users() {
+    local destination="$1"
+
+    if [[ ${#USERS_TO_MIGRATE[@]} -eq 0 && ${#USERS_TO_DELETE[@]} -eq 0 ]]; then
+        echo "No operations to perform"
+        return
+    fi
+
+    echo "Creating migration script..."
+    local script_content
+    script_content=$(create_migration_script)
+
+    echo "Executing remote operations..."
+    execute_migration_script "$destination" "$script_content"
+}
+
+# Performs the actual execution of the migration script
+execute_migration_script() {
+    local destination="$1"
+    local script_content="$2"
+
+    # Send script via stdin to remote bash and execute it
+    if echo "$script_content" | ssh "$destination" 'bash'; then
+        echo "Remote script executed successfully"
+    else
+        echo "Remote script failed"
+    fi
+} 
+
+# Creates script containing all delete and create operations to update remote server
+create_migration_script() {
+    local script_lines="#!/bin/bash\n\n"
+
+    # Add delete operations
+    if [[ ${#USERS_TO_DELETE[@]} -gt 0 ]]; then
+        for username in "${USERS_TO_DELETE[@]}"; do
+            script_lines+="$(delete_remote_user "$username")\n"
+        done
+        script_lines+="\n"
+    fi
+
+    # Add migrate operations
+    if [[ ${#USERS_TO_MIGRATE[@]} -gt 0 ]]; then
+        for user_data in "${USERS_TO_MIGRATE[@]}"; do
+            IFS=":" read -ra user_fields <<< "$user_data" # Split data into array to extract username
+            local username="${user_fields[0]}"
+            script_lines+="$(delete_remote_user "$username")\n"
+            script_lines+="$(create_remote_user "$user_data")\n"
+        done
+    fi
+
+    echo -e "$script_lines"
+}
+
+# Generates delete user command
+delete_remote_user() {
+    local username="$1"
+    echo "deluser $username > /dev/null 2> /dev/null"
+}
+
+# Generates create user command
+create_remote_user() {
+    local user_data="$1"
+    IFS=":" read -ra user_fields <<< "$user_data"
+
+    local username="${user_fields[0]}"
+    local password_hash="${user_fields[1]}"
+    local group_id="${user_fields[2]}"
+    local gecos="${user_fields[3]}"
+    local shell="${user_fields[4]}"
+
+    # Replace dollar signs in password hash by replacing them with \\$
+    password_hash="${password_hash//$/\\$}"
+
+    # Create group first
+    echo "groupadd -g $group_id -f group$group_id > /dev/null 2>&1"
+
+    # Produce full command 
+    echo "/usr/sbin/useradd -p '$password_hash' -g $group_id -c \"$gecos\" -M -s $shell $username > /dev/null 2> /dev/null" 
+}
+
 ############################################################
 #                MAIN BODY OF PROGRAM                      #
 ############################################################
