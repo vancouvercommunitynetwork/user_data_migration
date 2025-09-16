@@ -13,8 +13,25 @@
 #              DECLARATIONS AND DEFINITIONS                #
 ############################################################
 
-# Settings.
-lock_file="/var/run/vcn_user_data_migration.lck"
+# Settings
+LOCK_FILE="/var/run/vcn_user_migrate.lck"
+CACHE_FILE="/var/run/vcn_user_cache.txt"
+NOLOGIN_SHELL="/usr/sbin/nologin"
+PROGRAM_NAME=$(basename "$0")
+
+# Exit codes
+EXIT_MULTIPLE_INSTANCES=1
+EXIT_BAD_PARAMETERS=2
+EXIT_INSUFFICIENT_USER_LEVEL=3
+
+# File paths
+PASSWD_FILE="/etc/passwd"
+SHADOW_FILE="/etc/shadow"
+
+# Arrays used for migration tracking
+declare -a USERS_TO_MIGRATE
+declare -a USERS_TO_DELETE
+declare -A CURRENT_CACHE
 
 # Print a description of how the program should be called.
 printUsageMessage(){
