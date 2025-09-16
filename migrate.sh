@@ -89,6 +89,61 @@ check_file_empty() {
     fi
 }
 
+# ========== USER DATA FUNCTIONS ==========
+
+find_user_in_file() {
+    local username="$1"
+    local filepath="$2"
+
+    if [[ -r "$filepath" ]]; then
+        grep "^${username}:" "$filepath" 2>/dev/null
+    fi
+}
+
+get_user_data() {
+    local username="$1"
+    local passwd_entry shadow_entry
+
+    passwd_entry=$(find_user_in_file "$username" "$PASSWD_FILE")
+    shadow_entry=$(find_user_in_file "$username" "$SHADOW_FILE")
+
+    if [[ -z "$passwd_entry" || -z "$shadow_entry" ]]; then
+        return 1
+    fi
+
+    # Parse passwd entry - username:password:userID:groupID:gecos:homeDir:shell
+    IFS=":" read -ra passwd_fields <<< "$passwd_entry"
+
+    # Parse shadow entry - username:password:lastchanged:minimum:maximum:warn:inactive:expire
+    IFS=":" read -ra shadow_fields <<< "$shadow_entry"
+
+    # Return a 1-liner string of user data: username:passwd_hash:group_id:gecos:shell
+    echo "${passwd_fields[0]}:${shadow_fields[1]}:${passwd_fields[3]}:${passwd_fields[4]}:${NOLOGIN_SHELL}"
+}
+
+# Create list of usernames from input file - loads all usernames from input file into memory (potential issue)
+read_user_list() {
+    local user_list_file="$1"
+    local usernames=()
+
+    # Make sure the file is readable
+    if [[ ! -r "$user_list_file" ]]; then
+        echo "Error reading user list file: $user_list_file" >&2
+        exit 1
+    fi
+
+    # loop over the file and add usernames to list
+    while IFS= read -r username; do
+        username=$(echo "$username" | tr -d '[:space:]')
+        if [[ -n "$username" ]]; then 
+            usernames+=("$username")
+	fi
+    done <  "$user_list_file"
+
+    printf '%s\n' "${usernames[@]}"
+}
+
+
 ############################################################
 #                MAIN BODY OF PROGRAM                      #
 ############################################################
