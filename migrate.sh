@@ -313,41 +313,75 @@ create_remote_user() {
     echo "/usr/sbin/useradd -p '$password_hash' -g $group_id -c \"$gecos\" -M -s $shell $username > /dev/null 2> /dev/null" 
 }
 
-############################################################
-#                MAIN BODY OF PROGRAM                      #
-############################################################
 
-# Run various initialization checks.
-checkUserLevel           # User must have sudo privilege.
-checkParameterCount $#   # Check program was given correct arguments.
-lockProgramExecution     # Don't allow more than one instance to run.
+# ========== MAIN PROGRAM BODY ==========
+main() {
+    # Perform checks
+    check_user_level
+    check_parameter_count "$@"
+    lock_program_execution
 
-# For each user...
-while read user_name; do
-    # Try to get user's data from /etc/passwd and /etc/shadow.
-    passwd_result=$(grep "^$user_name:" /etc/passwd)
-    shadow_result=$(grep "^$user_name:" /etc/shadow)
+    # Get cmd line args
+    local destination="$1"
+    local user_list_file="$2"
 
-    # If user's data was found...
-    if [ ! -z "$passwd_result" ] && [ ! -z "$shadow_result" ]; then
-        # Split entry components into arrays of fields.
-        IFS=':' read -r -a passwd_fields <<< "$passwd_result"
-        IFS=':' read -r -a shadow_fields <<< "$shadow_result"
+    # Check if inout file is empty 
+    check_file_empty "$user_list_file"
 
-        # Pull the needed fields from the arrays. The field ordering in passwd and shadow are:
-        #    username:password:userID:groupID:gecos:homeDir:shell
-        #    username:password:lastchanged:minimum:maximum:warn:inactive:expire
-        name=${passwd_fields[0]}     # Username.
-        pass=${shadow_fields[1]}     # User's encrypted password.
-        gid=${passwd_fields[3]}      # User's group ID.
-        gecos=${passwd_fields[4]}    # User's info (full name).
-        shell="/usr/sbin/nologin"   # Shell disabled for security.        
+    # Load previous cache in memory and back it up
+    echo "Loading previous cache"
+    declare -A previous_cache
+    while IFS='=' read -r username cache_entry; do
+        previous_cache["$username"]="$cache_entry"
+    done < <(load_cache)
+    backup_previous_cache
 
-        # Remotely add user accounts (ssh will halt loop without -n).
-        echo Migrating user: $name
-        # Update remote user account by deleting and recreating it. Note that deluser output is nullified to prevent it from clogging this program's output with irrelevant messages.
-        ssh -n $1 deluser $name '> /dev/null 2> /dev/null'
-        ssh -n $1 /usr/sbin/useradd -p \'$pass\' -g $gid -c \"$gecos\" -M -s $shell $name
+    # Read the list of users into an array
+    echo "Reading user list..."
+    readarray -t usernames < <(read_user_list "$user_list_file")
+
+    # Initialize arrays
+    USERS_TO_MIGRATE=()
+    USERS_TO_DELETE=()
+    declare -A input_users_set  # Used to check for users deleted from input list
+    declare -A current_cache    # Updated representation of shadow and passwd files
+
+    # Iterate over usernames input file 
+    for username in "${usernames[@]}"; do
+        local current_user_data
+        current_user_data=$(get_user_data "$username")
+
+        # Add username to input_users_set for later checking
+        input_users_set["$username"]=1
+
+        # Add the user data to the current cache
+        if [[ -n "$current_user_data" ]]; then
+            current_cache["$username"]="$current_user_data"
+        fi
+
+        # determine if user needs migration
+        user_needs_migration "$username" "$current_user_data" "${previous_cache[$username]}"
+    done
+
+    # Delete users removed from input list but remain in cache
+    for cached_username in "${!previous_cache[@]}"; do
+        if [[ -z "${input_users_set[$cached_username]}" ]]; then
+            echo " $cached_username: User no longer in input list, will remove from remote machine"
+            USERS_TO_DELETE+=("$cached_username")
+        fi
+    done
+
+    # Perform all remote operations in a single SSH connection
+    if [[ ${#USERS_TO_DELETE[@]} -gt 0 || ${#USERS_TO_MIGRATE[@]} -gt 0 ]]; then
+        bulk_migrate_users "$destination"
+    else
+        echo "No users need migration or deletion"
     fi
-done <"$2"
 
+    # Save current cache for next run
+    echo "Saving cache for next run"
+    save_cache
+    echo "Migration complete"
+}
+
+main "$@"
