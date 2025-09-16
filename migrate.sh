@@ -65,6 +65,20 @@ check_user_level() {
     fi
 }
 
+check_file_empty() {
+    local user_list_file="$1"
+
+    if [[ ! -r "$user_list_file" ]]; then
+        echo "Error: Cannot read user list file" >&2
+        exit ${EXIT_BAD_PARAMETERS}
+    fi
+
+    if [[ ! -s "$user_list_file" ]]; then
+        echo "Error: User list file is empty" >&2
+        exit ${EXIT_BAD_PARAMETERS}
+    fi
+}
+
 
 # ========== USER DATA FUNCTIONS ==========
 
@@ -312,6 +326,9 @@ main() {
     # Get cmd line args
     local destination="$1"
     local user_list_file="$2"
+
+    # Check if inout file is empty 
+    check_file_empty "$user_list_file"
 
     # Load previous cache in memory and back it up
     echo "Loading previous cache"
