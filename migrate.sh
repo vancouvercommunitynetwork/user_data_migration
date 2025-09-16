@@ -182,51 +182,6 @@ backup_previous_cache() {
     fi
 }
 
-# ========== MIGRATION LOGIC ==========
-
-user_needs_migration() {
-    local username="$1"
-    local current_user_data="$2"
-    local previous_cache_entry="$3"
-
-    # Check for users deleted previously but still in input list
-    if [[ -z "$current_user_data" ]]; then
-        if [[ -z "$previous_cache_entry" ]]; then
-            echo " $username: User not found locally or in backup cache, skipping"
-            return
-        fi
-    fi
-
-    # Check for recently deleted users - user absent from passwd/shadow file but found in previous run cache
-    if [[ -z "$current_user_data" ]]; then
-        if [[ -n "$previous_cache_entry" ]]; then
-	    echo " $username: User deleted locally, will be deleted from server"
-	    USERS_TO_DELETE+=("$username")
-        fi
-        return
-    fi
-
-    # Check for created users - user present in passwd/shadow file but not found in previous run cache
-    if [[ -z "$previous_cache_entry" ]]; then
-        if [[ -n "$current_user_data" ]]; then
-            echo " $username: New user"
-            USERS_TO_MIGRATE+=("$current_user_data")
-	else
-            echo " $username not found locally or in previous cache, skipping"
-        fi
-        return
-    fi
-
-    # Check for changes in existing users
-    if [[ "$current_user_data" != "$previous_cache_entry" ]]; then
-        echo " $username: User data changed"
-        USERS_TO_MIGRATE+=("$current_user_data")
-        return
-    fi
-
-    # No changes detected
-    echo " $username: No changes, skipping"
-}
 
 ############################################################
 #                MAIN BODY OF PROGRAM                      #
