@@ -1,6 +1,7 @@
 import sys
 
-USERS_LIST = "test_users.txt" # an existing list of users
+# Existing list of users, assuming the file is in the same directory as this script
+USERS_LIST = "test_users.txt" 
 
 def get_users_list(user_list_file):
     # Store usernames/passwords for reference in a dictionary
@@ -12,13 +13,14 @@ def get_users_list(user_list_file):
                 user = line.strip()
                 if user:
                     username, password = user.split(":")
-                    users[username] = password
+                    users[username] = password # store username and password
             return users
     except (IOError, OSError) as e:
         print(f"Error reading user list file: {e}", file=sys.stderr)
         sys.exit()
 
-def read_user_search_list(user_list_search_file):
+def search_users(users, user_list_search_file):
+    # Reads in the file with users to search for in the users dict
     # Users to search for are stored into an array
     users_to_search = []
 
@@ -26,28 +28,24 @@ def read_user_search_list(user_list_search_file):
         with open(user_list_search_file, 'r') as file:
             for line in file:
                 users_to_search.append(line.strip())
-            return users_to_search
     except (IOError, OSError) as e:
         print("Error reaching user search file: {e}", file=sys.stderr)
         sys.exit()
 
-def search_users(users, users_to_search):
-    for user_to_search in users_to_search:
-        if user_to_search in users:
-            print(user_to_search)
+    for search_user in users_to_search:
+        # print each user that exists
+        if search_user in users:
+            print(search_user)
 
 def main():
+    # Get command line arguments
     user_search_file = sys.argv[1]
 
     # Read in and store an already existing list of users to a dict for search reference
     users = get_users_list(USERS_LIST)
-    print(users)
 
-    # Read in a list of users to search for provided in the command line arguments
-    users_to_search = read_user_search_list(user_search_file)
-    print(users_to_search)
-
-    search_users(users, users_to_search)
+    # Read in a list of users to search for provided in the command line arguments and find matches in the existing user list
+    search_users(users, user_search_file)
 
 if __name__ == "__main__":
     main()
