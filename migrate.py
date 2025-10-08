@@ -1,5 +1,7 @@
 import sys
 
+USERS_LIST = "test_users.txt" # an existing list of users
+
 def read_user_list(user_list_file):
     # Store usernames/passwords for reference in a dictionary
     users = {}
