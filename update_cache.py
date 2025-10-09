@@ -2,7 +2,7 @@ import sys
 import json
 
 # Existing list of users, assuming the file is in the same directory as this script
-USERS_LIST = "test_users.txt"
+USERS_LIST_FILE = "test_users.txt"
 
 CACHE_FILE = "user_cache.json"
 
@@ -16,7 +16,8 @@ def get_users_list(user_list_file):
                 user = line.strip()
                 if user:
                     username, password = user.split(":")
-                    users[username] = password # store username and password
+                    # Store username and password
+                    users[username] = password 
             return users
     except (IOError, OSError) as e:
         print(f"Error reading user list file: {e}", file=sys.stderr)
@@ -29,9 +30,8 @@ def load_cache(file_path):
     try:
         # Load the cache if the cache file already exists
         with open(file_path, 'r') as file:
-            file_content = json.load(file)
-            file_cache[file_path] = file_content
-            return file_cache[file_path]
+            file_cache = json.load(file)
+        return file_cache
     except (IOError, OSError, json.JSONDecodeError):
         return {}
     
@@ -43,7 +43,8 @@ def update_cache(cache_data, users_list, users_to_search):
 
     for search_user in users_to_search:
         if search_user in users_list:
-            cache_data[search_user] = users_list[search_user]
+            # Create/update the username/password pair and add to updated cache
+            updated_user_cache[search_user] = users_list[search_user]
 
     return updated_user_cache
 
@@ -57,9 +58,9 @@ def save_cache(cache_data, file_path):
 
 def main():
     # Read in and store the users list as a dict for reference
-    users_list = get_users_list(USERS_LIST)
+    users_list = get_users_list(USERS_LIST_FILE)
 
-    # Process input
+    # Process standard input from command line
     users_to_search = []
     for line in sys.stdin:
         user = line.strip()
@@ -69,10 +70,10 @@ def main():
     user_cache = load_cache(CACHE_FILE)
 
     # Update cache data
-    user_cache = update_cache(user_cache, users_list, users_to_search)
+    updated_user_cache = update_cache(user_cache, users_list, users_to_search)
 
     # Save the cache data to a JSON cache file
-    save_cache(user_cache, CACHE_FILE)
+    save_cache(updated_user_cache, CACHE_FILE)
 
 if __name__ == "__main__":
     main()
