@@ -23,7 +23,7 @@ def get_users_list(user_list_file):
         sys.exit()
 
 def load_cache(file_path):
-    # Load the cache data into a dictionary which will be updated later
+    # Load the JSON cache data into a dictionary to be updated/saved later
     file_cache = {}
 
     try:
@@ -36,7 +36,8 @@ def load_cache(file_path):
         return {}
     
 def update_cache(cache_data, users_list, users_to_search):
-    # Updates the user cache data dictionary. Finds the corresponding user in the full users list and their password.
+    # Updates the user cache data dictionary. 
+    # Finds the corresponding user in the full users list and their password.
     # The cache data gets updated with the username/password pair
     updated_user_cache = cache_data
 
@@ -47,9 +48,7 @@ def update_cache(cache_data, users_list, users_to_search):
     return updated_user_cache
 
 def save_cache(cache_data, file_path):
-    #cache_data = {'user1': 'pass1',
-    #             'user2': 'pass2'}
-    
+    # Saves cache data to a JSON file. Creates a new cache file if it doesn't exist yet.
     try:
         with open(file_path, 'w') as file:
             json.dump(cache_data, file, indent=2)
@@ -69,7 +68,11 @@ def main():
     # Load cache from file
     user_cache = load_cache(CACHE_FILE)
 
+    # Update cache data
     user_cache = update_cache(user_cache, users_list, users_to_search)
+
+    # Save the cache data to a JSON cache file
+    save_cache(user_cache, CACHE_FILE)
 
 if __name__ == "__main__":
     main()
