@@ -56,16 +56,16 @@ def save_cache(cache_data, file_path):
     except (IOError, OSError) as e:
         print(f"Could not save cache file: {e}", file=sys.stderr)
 
-def update_dbm_cache(users_list, users_to_search):
-    with dbm.open(CACHE_FILE, 'c') as cache:
-        for search_user in users_to_search:
-            if search_user in users_list:
-                cache[search_user] = users_list[search_user]
-
-        for key, value in cache.items():
-            print(key.decode('utf-8'), value.decode('utf-8'))
-
-
+def update_user_cache(users_list, user_to_search):
+    # Reads and updates the dbm cache for a single user
+    if user_to_search in users_list:  
+        try:
+            # Create new cache if it currently doesn't exist
+            with dbm.open(CACHE_FILE, 'c') as cache: 
+                cache[user_to_search] = users_list[user_to_search]
+        except (IOError, OSError) as e:
+            print(f"Could not open the dbm file: {e}", file=sys.stderr)
+ 
 def main():
     # Read in and store the users list as a dict for reference
     users_list = get_users_list(USERS_LIST_FILE)
@@ -76,18 +76,9 @@ def main():
         user = line.strip()
         users_to_search.append(user)
 
-    update_dbm_cache(users_list, users_to_search)
-
-    '''user_cache = dbm.open('user_cache', 'c')
-
-    for search_user in users_to_search:
-        if search_user in users_list:
-            user_cache[search_user] = users_list[search_user]
-
-    for key, value in user_cache.items():
-        print(key, value)
-    
-    user_cache.close()'''
+    # Updates user cache for each searched user
+    for user_to_search in users_to_search:
+        update_user_cache(users_list, user_to_search)
 
     # Load cache from file
     #user_cache = load_cache(CACHE_FILE)
