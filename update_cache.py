@@ -1,10 +1,10 @@
 import sys
 import json
+import dbm
 
 # Existing list of users, assuming the file is in the same directory as this script
 USERS_LIST_FILE = "test_users.txt"
-
-CACHE_FILE = "user_cache.json"
+CACHE_FILE = "user_cache"
 
 def get_users_list(user_list_file):
     # Store usernames/passwords for reference in a dictionary
@@ -56,6 +56,16 @@ def save_cache(cache_data, file_path):
     except (IOError, OSError) as e:
         print(f"Could not save cache file: {e}", file=sys.stderr)
 
+def update_dbm_cache(users_list, users_to_search):
+    with dbm.open(CACHE_FILE, 'c') as cache:
+        for search_user in users_to_search:
+            if search_user in users_list:
+                cache[search_user] = users_list[search_user]
+
+        for key, value in cache.items():
+            print(key.decode('utf-8'), value.decode('utf-8'))
+
+
 def main():
     # Read in and store the users list as a dict for reference
     users_list = get_users_list(USERS_LIST_FILE)
@@ -66,14 +76,28 @@ def main():
         user = line.strip()
         users_to_search.append(user)
 
+    update_dbm_cache(users_list, users_to_search)
+
+    '''user_cache = dbm.open('user_cache', 'c')
+
+    for search_user in users_to_search:
+        if search_user in users_list:
+            user_cache[search_user] = users_list[search_user]
+
+    for key, value in user_cache.items():
+        print(key, value)
+    
+    user_cache.close()'''
+
     # Load cache from file
-    user_cache = load_cache(CACHE_FILE)
+    #user_cache = load_cache(CACHE_FILE)
 
     # Update cache data
-    updated_user_cache = update_cache(user_cache, users_list, users_to_search)
+    #updated_user_cache = update_cache(user_cache, users_list, users_to_search)
 
     # Save the cache data to a JSON cache file
-    save_cache(updated_user_cache, CACHE_FILE)
+    #save_cache(updated_user_cache, CACHE_FILE)
+    
 
 if __name__ == "__main__":
     main()
