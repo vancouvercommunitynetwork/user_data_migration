@@ -35,7 +35,6 @@ def update_cached_password(username, new_password):
     try:
         with dbm.open(CACHE_FILE, 'w') as cache:
             cache[username] = new_password
-            print(new_password)
     except (IOError, OSError) as e:
         sys.exit(1)
 
@@ -47,11 +46,13 @@ def main():
         users_to_search.append(user)
 
     # Loop through users and update passwords as necessary
-    for user_to_search in users_to_search:
-        current_password = get_password(user_to_search)
-        cached_password = get_cached_password(user_to_search)
+    for username in users_to_search:
+        current_password = get_password(username)
+        cached_password = get_cached_password(username)
         if current_password != cached_password and cached_password is not None:
-            update_cached_password(user_to_search, current_password)
+            update_cached_password(username, current_password)
+            
+            print(f""" ssh -n user@remote_host "sudo userdel -r {username} && sudo useradd -p '{current_password}' -M -s /usr/sbin/nologin {username}" {username} """)
 
 if __name__ == "__main__":
     main()
