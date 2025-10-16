@@ -22,6 +22,33 @@ def get_users_list(user_list_file):
         print(f"Error reading user list file: {e}", file=sys.stderr)
         sys.exit()
 
+def get_password(username):
+    # Returns the password of a user if the username parameter matches with an existing user
+    try:
+        with open(USERS_LIST_FILE, 'r') as file:
+            for line in file:
+                user = line.strip()
+                if user:
+                    name, password = user.split(":")
+                    if username == name:
+                        return password.strip()
+    except (IOError, OSError) as e:
+        print(f"Error reading user list file: {e}", file=sys.stderr)
+        sys.exit()
+    return None
+
+def get_cached_password(username):
+    # Returns the password of a cached user if the user exists in the cache
+    try:
+        with dbm.open(CACHE_FILE, 'r') as cache:
+            if bytes(username, 'utf-8') in cache.keys():
+                cache_pass_str = cache[username].decode('utf-8')
+                return cache_pass_str.strip()
+    except (IOError, OSError) as e:
+        print(f"Could not open the dbm file: {e}", file=sys.stderr)
+        sys.exit()
+    return None
+
 def check_user_password_match(users_list, user_to_search):
     # Returns whether there is a match with user's password in both the user list and the cache
     try:
@@ -34,7 +61,7 @@ def check_user_password_match(users_list, user_to_search):
         print(f"Could not open the dbm file: {e}", file=sys.stderr)
         sys.exit()
 
-def update_cache_user_password(username, new_password):
+def update_cached_password(username, new_password):
     # Updates the dbm cache for a single user with a new password, and outputs the updated password
     try:
         with dbm.open(CACHE_FILE, 'w') as cache:
@@ -46,7 +73,13 @@ def update_cache_user_password(username, new_password):
 
 def main():
     # Read in and store the users list as a dict for reference
-    users_list = get_users_list(USERS_LIST_FILE)
+    # users_list = get_users_list(USERS_LIST_FILE)
+
+    # Update user cache
+    '''for user_to_search in users_to_search:
+        # Only update passwords in user cache if there is no match
+        if check_user_password_match(users_list, user_to_search) is False:
+            update_cached_password(user_to_search, users_list[user_to_search])'''
 
     # Process standard input from command line
     users_to_search = []
@@ -54,12 +87,14 @@ def main():
         user = line.strip()
         users_to_search.append(user)
 
-    # Update user cache
     for user_to_search in users_to_search:
-        # Only update passwords in user cache if there is no match
-        if check_user_password_match(users_list, user_to_search) is False:
-            update_cache_user_password(user_to_search, users_list[user_to_search])
-            
+        new_password = get_password(user_to_search)
+        #print("new password: " + new_password)
+        cached_password = get_cached_password(user_to_search)
+        #print("cached password: " + cached_password)
+        if new_password != cached_password and cached_password is not None:
+            update_cached_password(user_to_search, new_password)
+
 
 if __name__ == "__main__":
     main()
