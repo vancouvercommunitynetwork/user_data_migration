@@ -16,8 +16,7 @@ def get_password(username):
                     if username == name:
                         return password.strip()
     except (IOError, OSError) as e:
-        print(f"Error reading user list file: {e}", file=sys.stderr)
-        sys.exit()
+        sys.exit(1)
     return None
 
 def get_cached_password(username):
@@ -28,8 +27,7 @@ def get_cached_password(username):
                 cache_pass_str = cache[username].decode('utf-8')
                 return cache_pass_str.strip()
     except (IOError, OSError) as e:
-        print(f"Error reading the cache file: {e}", file=sys.stderr)
-        sys.exit()
+        sys.exit(1)
     return None
 
 def update_cached_password(username, new_password):
@@ -39,8 +37,7 @@ def update_cached_password(username, new_password):
             cache[username] = new_password
             print(new_password)
     except (IOError, OSError) as e:
-        print(f"Error writing to the cache file: {e}", file=sys.stderr)
-        sys.exit()
+        sys.exit(1)
 
 def main():
     # Process standard input from command line
