@@ -39,13 +39,17 @@ def update_cached_password(username, new_password):
     except (IOError, OSError) as e:
         sys.exit(1)
 
-def sync_password(username, password):
+def sync_password(username, password = ""):
     # Run the linux command for password sync
+    if (password == ""):
+        return False
+    
     command = f"""ssh -n user@remote_host "sudo userdel -r {username} && sudo useradd -p '{password}' -M -s /usr/sbin/nologin {username}" {username}"""
     try:
         subprocess.run(command, shell=True, check=True)
+        return True
     except subprocess.CalledProcessError as e:
-        sys.exit(1)
+        return False
 
 def main():
     # Process standard input from command line
@@ -59,8 +63,8 @@ def main():
         current_password = get_password(username)
         cached_password = get_cached_password(username)
         if current_password != cached_password and cached_password is not None:
-            sync_password(username, current_password)
-            update_cached_password(username, current_password)
+            if sync_password(username, current_password):
+                update_cached_password(username, current_password)
             
 if __name__ == "__main__":
     main()
