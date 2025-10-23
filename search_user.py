@@ -20,7 +20,7 @@ def get_users_list(user_list_file):
         print(f"Error reading user list file: {e}", file=sys.stderr)
         sys.exit()
 
-def find_users(input, users):
+def search_users(input, users):
     # Search for users from the user list if they exist based on usernames passed as input
     found_users = []
 
@@ -35,7 +35,7 @@ def main():
     users = get_users_list(USERS_LIST)
 
     # Process lines from piping
-    found_users = find_users(sys.stdin, users)   
+    found_users = search_users(sys.stdin, users)   
     for found_user in found_users:
         print(found_user)
 
