@@ -13,21 +13,31 @@ def get_users_list(user_list_file):
                 user = line.strip()
                 if user:
                     username, password = user.split(":")
-                    users[username] = password # store username and password
+                    # Store username and password
+                    users[username] = password
             return users
     except (IOError, OSError) as e:
         print(f"Error reading user list file: {e}", file=sys.stderr)
         sys.exit()
 
+def search_users(input, users):
+    # Search for users from the user list if they exist based on usernames passed as input
+    found_users = []
+
+    for line in input:
+        search_user = line.strip()
+        if search_user in users:
+            found_users.append(search_user)
+    return found_users
+
 def main():
     # Read in and store an already existing list of users to a dict for search reference
     users = get_users_list(USERS_LIST)
 
-    # Process lines when piping
-    for line in sys.stdin:
-        search_user = line.strip()
-        if search_user in users:
-            print(search_user)
+    # Process lines from piping
+    found_users = search_users(sys.stdin, users)   
+    for found_user in found_users:
+        print(found_user)
 
 if __name__ == "__main__":
     main()
