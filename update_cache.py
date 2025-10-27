@@ -1,5 +1,4 @@
 import sys
-import json
 import dbm
 
 # Existing list of users, assuming the file is in the same directory as this script
@@ -23,14 +22,14 @@ def get_users_list(user_list_file):
         print(f"Error reading user list file: {e}", file=sys.stderr)
         sys.exit()
 
-def update_user_cache(username, password):
+def update_user_cache(cache_file, username, password):
     # Reads and updates the dbm cache for a single user
     try:
         # Create new cache if it currently doesn't exist
-        with dbm.open(CACHE_FILE, 'c') as cache: 
+        with dbm.open(cache_file, 'c') as cache: 
             cache[username] = password
     except (IOError, OSError) as e:
-        print(f"Could not open the dbm file: {e}", file=sys.stderr)
+        print(f"Could not create or open the cache file: {e}", file=sys.stderr)
  
 def main():
     # Read in and store the users list as a dict for reference
@@ -45,7 +44,7 @@ def main():
     # Updates user cache for each searched user
     for user_to_search in users_to_search:
         if user_to_search in users_list:
-            update_user_cache(user_to_search, users_list[user_to_search])
+            update_user_cache(CACHE_FILE, user_to_search, users_list[user_to_search])
 
 if __name__ == "__main__":
     main()
