@@ -6,10 +6,10 @@ import subprocess
 USERS_LIST_FILE = "test_users_new_pass.txt"
 CACHE_FILE = "user_cache"
 
-def get_password(username):
+def get_password(user_list_file, username):
     # Returns the password of a user if the username parameter matches with an existing user
     try:
-        with open(USERS_LIST_FILE, 'r') as file:
+        with open(user_list_file, 'r') as file:
             for line in file:
                 user = line.strip()
                 if user:
@@ -20,10 +20,10 @@ def get_password(username):
         sys.exit(1)
     return None
 
-def get_cached_password(username):
+def get_cached_password(cache_file, username):
     # Returns the password of a cached user if the user exists in the cache
     try:
-        with dbm.open(CACHE_FILE, 'r') as cache:
+        with dbm.open(cache_file, 'r') as cache:
             if bytes(username, 'utf-8') in cache.keys():
                 cache_pass_str = cache[username].decode('utf-8')
                 return cache_pass_str.strip()
@@ -31,10 +31,10 @@ def get_cached_password(username):
         sys.exit(1)
     return None
 
-def update_cached_password(username, new_password):
+def update_cached_password(cache_file, username, new_password):
     # Updates the dbm cache for a single user with a new password, and outputs the updated password
     try:
-        with dbm.open(CACHE_FILE, 'w') as cache:
+        with dbm.open(cache_file, 'w') as cache:
             cache[username] = new_password
     except (IOError, OSError) as e:
         sys.exit(1)
@@ -60,11 +60,11 @@ def main():
 
     # Loop through users and update passwords as necessary
     for username in users_to_search:
-        current_password = get_password(username)
-        cached_password = get_cached_password(username)
+        current_password = get_password(USERS_LIST_FILE, username)
+        cached_password = get_cached_password(CACHE_FILE, username)
         if current_password != cached_password and cached_password is not None:
             if sync_password(username, current_password):
-                update_cached_password(username, current_password)
+                update_cached_password(CACHE_FILE, username, current_password)
             
 if __name__ == "__main__":
     main()
